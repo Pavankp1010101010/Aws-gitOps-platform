@@ -1,0 +1,21 @@
+{
+  "SchemaVersion": 2,
+  "ArtifactName": "synthetic-policy-fixture",
+  "ArtifactType": "container_image",
+  "Results": [
+    {
+      "Target": "synthetic",
+      "Class": "lang-pkgs",
+      "Type": "npm",
+      "Vulnerabilities": [
+        {
+          "VulnerabilityID": "SYNTHETIC-NOT-A-REAL-CVE",
+          "PkgName": "synthetic-policy-package",
+          "InstalledVersion": "1.0.0",
+          "Severity": "LOW",
+          "Title": "Synthetic fixture to verify severity selection"
+        }
+      ]
+    }
+  ]
+}

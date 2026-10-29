@@ -1,0 +1,45 @@
+# Dependencies, generated output, and local caches
+node_modules/
+coverage/
+dist/
+build/
+.cache/
+*.log
+npm-debug.log*
+
+# Local environment and credentials; keep sanitized examples
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+*.p12
+*.pfx
+.aws/
+.kube/
+.npmrc
+
+# Terraform working files, state, saved plans, and private inputs
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+crash.log
+crash.*.log
+
+# Local database storage and backups
+data/
+pgdata/
+backups/
+*.dump
+*.backup
+
+# Local editor and operating-system files
+.idea/
+.vscode/
+Thumbs.db
+.DS_Store

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Support Ticket Tracker</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header><span class="eyebrow">DEVOPS PORTFOLIO / PRIVATE DEMO</span><h1>Support Ticket Tracker</h1>
+    <p>One place to capture requests, track progress, and preserve the conversation.</p></header>
+  <main>
+    <p id="message" role="status" aria-live="polite"></p>
+    <section aria-labelledby="create-heading">
+      <h2 id="create-heading">Create a ticket</h2>
+      <form id="create-form">
+        <label>Title<input name="title" required maxlength="160"></label>
+        <label>Description<textarea name="description" required maxlength="5000"></textarea></label>
+        <div class="row"><label>Priority<select name="priority"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select></label>
+          <label>Assignee label<input name="assignee" maxlength="100"></label></div>
+        <button type="submit">Create ticket</button>
+      </form>
+    </section>
+    <section aria-labelledby="list-heading">
+      <h2 id="list-heading">Tickets</h2>
+      <form id="filter-form" class="row">
+        <label>Status filter<select name="status"><option value="">All statuses</option><option value="open">Open</option><option value="in_progress">In Progress</option><option value="resolved">Resolved</option></select></label>
+        <label>Priority filter<select name="priority"><option value="">All priorities</option><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></label>
+        <button type="submit">Apply filters</button>
+      </form>
+      <ul id="ticket-list" aria-label="Ticket list"></ul>
+      <div class="row"><button id="previous" type="button">Previous</button><span id="page-info"></span><button id="next" type="button">Next</button></div>
+    </section>
+    <section id="detail" aria-labelledby="detail-heading" hidden>
+      <h2 id="detail-heading">Ticket details</h2>
+      <p id="ticket-description"></p><p id="ticket-dates"></p>
+      <form id="update-form">
+        <div class="row"><label>Ticket status<select name="status"><option value="open">Open</option><option value="in_progress">In Progress</option><option value="resolved">Resolved</option></select></label>
+          <label>Ticket priority<select name="priority"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></label></div>
+        <label>Ticket assignee<input name="assignee" maxlength="100"></label>
+        <button type="submit">Save changes</button>
+      </form>
+      <h3>Conversation</h3><ul id="comments"></ul>
+      <form id="comment-form"><label>Comment<textarea name="body" required maxlength="2000"></textarea></label><button type="submit">Add comment</button></form>
+    </section>
+  </main>
+  <footer>Synthetic data only. No real customer information. <span id="version"></span></footer>
+</body>
+</html>
