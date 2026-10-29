@@ -23,7 +23,6 @@ Local application and CI checks come before paid infrastructure in the recommend
 
 ## Decisions required before implementation
 
-- Test effective PR/CI protection enforcement in Stage 03 (protection enabled verified in Stage 01; exact settings user-confirmed).
 - Choose AWS region and maximum acceptable demonstration spend.
 - Select an EC2 size based on measured application and monitoring needs.
 - Choose notification destination and configure its credentials securely.
@@ -42,6 +41,6 @@ Local application and CI checks come before paid infrastructure in the recommend
 
 ## Next intended action
 
-Finish [Stage 03](11-stage03-results.md): the patched image passes the unchanged gate and publication is approved; next preserve remote history, publish reviewed files through a feature branch/PR, and verify hosted CI/protection behavior. Stages 01 and 02 are complete. Keep application implementation in `application` and platform implementation in `platform`.
+Stages 00-03 are complete; see [hosted CI and enforcement evidence](11-stage03-results.md). PR #1 is unmerged. Before Stage 04, obtain separate approval for AWS region, budget, provisioning, and runtime; do not start cloud work automatically.
 
-Local application source, tests, migrations, Dockerfile, Compose configuration, and a local-only CI workflow are implemented. AWS/Kubernetes infrastructure is not implemented.
+Application source, tests, migrations, Dockerfile, Compose configuration, and hosted CI are implemented. AWS/Kubernetes infrastructure is not implemented.

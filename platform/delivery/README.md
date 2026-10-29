@@ -2,7 +2,7 @@
 
 [Platform overview](../README.md) | [Flows](../../docs/03-architecture-and-flows.md)
 
-Status: CI workflow prepared locally at root `.github/workflows/application-ci.yml`; not uploaded or executed on GitHub. Application delivery/ECR/GitOps automation remains future work.
+Status: root `.github/workflows/application-ci.yml` is published on PR #1 and verified on GitHub. Application delivery/ECR/GitOps automation remains future work.
 
 ## Implemented local CI configuration
 
@@ -14,9 +14,9 @@ Status: CI workflow prepared locally at root `.github/workflows/application-ci.y
 - Image build/export, offline HIGH/LOW scan-policy checks, then actual image scan.
 - No publication or deployment step.
 
-See the [scan policy](scan-policy.md) and [Stage 03 results](../../docs/11-stage03-results.md). A scan failure must fail the job. The patched current image passes the local HIGH/CRITICAL gate; hosted verification remains pending.
+See the [scan policy](scan-policy.md) and [Stage 03 results](../../docs/11-stage03-results.md). The patched image passes the local and hosted HIGH/CRITICAL gate. An actual temporary failing application test failed the required hosted job and blocked the PR; removing it restored success.
 
-After publication approval and a real workflow run, select `Application tests and image scan` as the required job/check using the actual name GitHub displays. Verify settings and failing-PR behavior before claiming protection enforcement. Never invent a required check name before it exists.
+The user selected `Application tests and image scan` as required. Public metadata verifies GitHub Actions as the source and enforcement for everyone. Exact other classic-protection settings remain user-confirmed; no bypass/merge was attempted. PR #1 is open and unmerged.
 
 ## Application pull requests
 

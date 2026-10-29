@@ -2,7 +2,7 @@
 
 [Stage index](README.md) | [Previous](02-local-application.md) | [Next](04-aws-foundation.md)
 
-Status: In progress. Patched image scan and local checks pass; approved publication and hosted enforcement checks remain.
+Status: Complete. Local image/regression checks and hosted required-check failure/recovery passed; PR #1 remains unmerged.
 
 ## Entry conditions
 
@@ -16,12 +16,12 @@ Make builds reproducible and prevent failing code from becoming a release artifa
 
 - [x] Add a pinned, non-root application Dockerfile and appropriate build context exclusions.
 - [x] Add local application/database container startup and documented configuration.
-- [x] Prepare GitHub Actions at the repository root workflow path (local only; hosted execution pending).
+- [x] Configure and execute GitHub Actions at the repository root workflow path.
 - [x] Run tests, build an image, and scan it with Trivy (scan blocked, not passed).
 - [x] Define severity thresholds, exception expiry, and failure handling.
 - [x] Pin dependencies and CI actions appropriately.
-- [ ] Configure available review/check enforcement and restricted workflow permissions.
-- [ ] Recheck exact branch-protection settings through authorized access and test effective PR/check enforcement; Stage 01 verified only public protection metadata and user-confirmed detailed selections.
+- [x] Configure available review/check enforcement and restricted workflow permissions.
+- [x] Verify required-check context/enforcement and blocked PR behavior; exact remaining classic-protection settings are user-confirmed, not independently authenticated.
 - [x] Keep privileged AWS credentials unavailable to untrusted pull requests (workflow requests read-only contents and no AWS/OIDC credentials).
 
 ## Work locations
@@ -31,7 +31,7 @@ Dockerfile and application tests in [application](../application/README.md). Del
 ## Exit checks
 
 - [x] Fresh container build starts successfully and reaches PostgreSQL.
-- [ ] A deliberate failing test fails CI.
+- [x] A deliberate failing application test fails hosted CI and the PR is blocked; removing it restores passing CI.
 - [x] Scan policy enforcement is tested locally with controlled HIGH/LOW reports, not an unsafe production dependency change.
 - [x] Container restart preserves database data.
 - [x] Local build/test commands are reproducible from documented prerequisites.
@@ -41,11 +41,11 @@ Dockerfile and application tests in [application](../application/README.md). Del
 
 See [Stage 03 results](../docs/11-stage03-results.md) and the [scan policy](../platform/delivery/scan-policy.md).
 
-13 application checks passed. The deliberate failing runner fixture returned 1; this is not hosted CI verification. The final Alpine image starts as non-root, migrates, reaches PostgreSQL, and retains data across application-container restart.
+13 application checks passed. The Alpine image starts as non-root, migrates, reaches PostgreSQL, and retains data across application-container restart. Hosted CI passed, then failed on an approved temporary application test while the required-check policy blocked PR #1, then passed after test removal.
 
 Previously reported OpenSSL findings were resolved by pinning available 3.5.9-r0 packages. The unchanged scan returned zero HIGH/CRITICAL findings, followed by passing patched-image regression checks.
 
-The user subsequently approved reviewed feature-branch publication, a PR, and temporary failing-test verification; no merge or protection changes are approved. No hosted enforcement result is claimed yet. Services are stopped. Keep this stage incomplete until hosted checks and protection enforcement pass.
+The user approved feature-branch publication and temporary failing-test verification and manually enabled the actual required job. See the results document for linked runs and verification limits. Services are stopped. No merge or Stage 04 work is approved.
 
 Record CI-01 and CI-02 results. Registry publication and final digest traceability wait for AWS setup.
 

@@ -11,7 +11,7 @@ This is the authoritative stage order and progress tracker for the Support Ticke
 | [00 - Planning](00-planning.md) | Documented scope, architecture, and separate application/platform directories | None | Complete: documentation only |
 | [01 - Decisions and workstation](01-decisions-and-workstation.md) | Confirmed choices, source control, and verified local tools | 00 | Complete: protection enabled verified; detailed settings user-confirmed |
 | [02 - Local application](02-local-application.md) | Working ticket application with PostgreSQL and tests | 01 | Complete: local checks passed; services stopped |
-| [03 - Containers and CI](03-containers-and-ci.md) | Reproducible image build and tested CI checks | 02 | In progress: patched scan passed; hosted checks pending |
+| [03 - Containers and CI](03-containers-and-ci.md) | Reproducible image build and tested CI checks | 02 | Complete: image gate, hosted CI, blocked-failure and recovery verified; PR unmerged |
 | [04 - AWS foundation](04-aws-foundation.md) | Approved, Terraform-managed AWS resources | 01, 03; cost approval | Not started |
 | [05 - K3s and Argo CD](05-k3s-and-argocd.md) | Restricted, bootstrapped cluster with working registry/Git access | 04 | Not started |
 | [06 - End-to-end GitOps](06-end-to-end-gitops.md) | Approved source changes reach the application through immutable images | 03, 05 | Not started |
@@ -45,6 +45,7 @@ Append an entry when implementation occurs:
 | 2026-10-29 | 02 | Stage and isolated dependency/database setup approved, including dedicated test resets | [Stage 02 results](../docs/10-stage02-results.md): 13 passing checks, browser workflows, actual database outage and recovery | Services stopped, volume retained; Stage 03 awaits approval |
 | 2026-10-29 | 03 | Project-only build/scan/restarts and revised Alpine image approved; GitHub files local only | [Stage 03 results](../docs/11-stage03-results.md): non-root container, 13 checks, offline scan fixtures, restart persistence; services stopped | 2 HIGH scan findings; hosted CI and protection enforcement pending publication approval |
 | 2026-10-29 | 03 | Pinned OpenSSL fix, regression, reviewed feature-branch publication/PR and temporary failing-test verification approved | Patched scan: zero HIGH/CRITICAL; 13 tests and container checks passed; services stopped | Hosted CI/protection verification pending; no merge or Stage 04 approval |
+| 2026-10-29 | 03 | User pushed/opened PR #1 and configured required CI check; controlled failure/recovery published | [Hosted evidence](../docs/11-stage03-results.md): initial pass, intentional test failure with blocked PR, restored pass; required check applies to everyone | Stage 03 complete; PR unmerged; Stage 04 not started or approved |
 
 Use the [acceptance matrix](../docs/08-validation-and-evidence.md) for detailed test results. Store real, redacted evidence only once it exists; link it from this record.
 

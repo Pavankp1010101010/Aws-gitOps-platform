@@ -2,13 +2,13 @@
 
 [Project overview](../README.md) | [Stage 03](../stages/03-containers-and-ci.md)
 
-Date: 2026-10-29. Status: In progress. Local image blocker resolved; publication and hosted enforcement checks pending.
+Date: 2026-10-29. Status: Complete. Patched image, local regression, hosted CI, and required-check failure/recovery verified. PR remains open and unmerged.
 
 ## Approved scope
 
 User approved project-only image builds, services, Trivy downloads/scans, application restart checks, and service cleanup. User separately approved the revised Alpine image after the first image was blocked.
 
-Initially GitHub configuration was local only. The user subsequently approved reviewed feature-branch commits/push, a PR, and a temporary failing application test followed by removal. No merge or protection-setting change is approved. Registry publication and AWS provisioning remain out of scope.
+Initially GitHub configuration was local only. The user subsequently approved reviewed feature-branch commits/push, a PR, and a temporary failing application test followed by removal. The user manually configured the required check after guided approval. No merge is approved. Registry publication and AWS provisioning remain out of scope.
 
 ## Implemented
 
@@ -18,7 +18,7 @@ Initially GitHub configuration was local only. The user subsequently approved re
 - Non-root runtime (`uid=1000`), allowlisted build context, no local credentials/tests copied.
 - Compose application, database, and explicit migration service.
 - Loopback-only ports, read-only application filesystem, dropped capabilities, no-new-privileges, and resource limits.
-- Local GitHub Actions workflow with digest-pinned PostgreSQL/Trivy and SHA-pinned checkout/setup-node actions.
+- Published GitHub Actions workflow with digest-pinned PostgreSQL/Trivy and SHA-pinned checkout/setup-node v6 actions.
 - CI tests, image build, native Trivy gate, and controlled failure-policy fixtures.
 - Node scripts accept CI environment variables without requiring a local `.env`.
 
@@ -70,12 +70,32 @@ Exact distribution package pins may eventually leave rolling package mirrors. A 
 
 These are scanner-reported package findings, not an independently confirmed exploitability analysis. No ignore rule, severity reduction, or unfixed-finding exclusion was introduced.
 
-## Completion blockers
+## Publication and hosted enforcement evidence
 
-1. Image fix and local regression are complete.
-2. Publication is approved; finish file review, preserve remote history, and publish through a feature branch/PR.
-3. Execute GitHub-hosted CI, prove a failing application test fails the real PR check, and verify exact protection/check enforcement through authorized access.
-4. Configure the actual required check after its name exists; do not mark hosted enforcement complete from a local runner test.
+The 58-file initial publication inventory was checked for the generated local database password, private-key headers, and recognized AWS/GitHub credential patterns; none were found. Ignored environment files, node_modules, scanner cache/reports, and database storage were excluded. Pattern checks reduce risk but do not constitute a complete secret audit.
+
+Remote history was preserved by adopting `origin/main` as the local parent without changing worktree files, then creating `stage03/containers-ci`. The remote README description remains represented in the expanded overview, and its original commits remain ancestors. No force-push occurred.
+
+The assistant's first push attempts failed authentication. The user authenticated/pushed interactively and opened [PR #1](https://github.com/Pavankp1010101010/Aws-gitOps-platform/pull/1). Subsequent feature-branch pushes succeeded. No shared credential helper or global Git configuration was modified.
+
+| Evidence | Result |
+|---|---|
+| [Initial hosted CI](https://github.com/Pavankp1010101010/Aws-gitOps-platform/actions/runs/40895320395), source `cce2123` | Success: tests, build, fixtures, and actual scan |
+| Public main branch metadata after user configuration | Required `Application tests and image scan`, GitHub Actions app ID 15368, enforcement level `everyone` |
+| [Intentional failure run](https://github.com/Pavankp1010101010/Aws-gitOps-platform/actions/runs/40896314569), source `1363ca6` | Required job failed at syntax/integration step due to temporary application test |
+| PR metadata at failing head | `mergeable_state: blocked`, open, unmerged |
+| [Restored passing run](https://github.com/Pavankp1010101010/Aws-gitOps-platform/actions/runs/40896625562), source `83df691` | Success after temporary test removal and maintained action pins |
+| PR metadata at restored head | `mergeable_state: clean`, open, unmerged |
+
+The failure run logs identify `test/stage03-gate-verification.test.js` and the intentional Stage 03 test. The temporary file is deleted in the current branch; it remains in Git history as drill evidence. The permanent runner fixture under platform tests is separate and is expected to fail only when explicitly invoked by its verification step.
+
+The hosted runtime warned that the old pinned v4 actions targeted deprecated Node 20. Both actions were updated to SHA-pinned v6 revisions using the maintained runtime; the restored run passed with those revisions.
+
+No merge or administrator bypass was attempted as a test. Exact classic-protection details beyond public metadata remain user-attested because unauthenticated detailed access returned 401. The required-check context/enforcement and blocked PR state were independently observed.
+
+## Completion and boundary
+
+All Stage 03 exit checks have evidence. ECR publication, source-to-running-cluster digest traceability, GitOps deployments, AWS provisioning, and Stage 04 are not included. The open PR is not merged; merging requires separate user approval.
 
 ## Safety and retention
 
@@ -83,4 +103,4 @@ Only project resources were started/restarted/stopped. Existing TimesTen configu
 
 Project data volume, stopped containers/network, images/build cache, ignored credentials, scanner database cache, and reports are retained. The generated `.cache/scan/application.tar` archive was removed after scanning. No long-lived scanner was left running.
 
-Final checks: Compose configuration validated without printing credentials; both project containers exited; ports 3100/55432 had no listeners; 138 relative documentation links resolved; `.env` and scan cache are ignored. No workflow-specific linter or GitHub-hosted run has validated the prepared workflow yet.
+Final handover checks: 142 relative documentation links resolved; diff checks passed; the temporary failing test was absent; project containers were exited; ports 3100/55432 had no listeners; private environment and scanner files remained ignored. The disposable scan archive was removed and reports/cache retained. GitHub accepted and executed the workflow; no separate workflow-specific linter was installed.

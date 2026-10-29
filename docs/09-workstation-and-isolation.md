@@ -102,6 +102,6 @@ The detailed classic-protection endpoint returned HTTP 401 without authenticatio
 
 User approved adding the local `origin` and fetching remote history; both succeeded on 2026-10-29. No local files were staged, committed, overwritten, or uploaded. GitHub settings will be configured manually by the user using the approved policy. Uploads require separate approval and a staged-content review.
 
-The fetched remote contains only its initial README while the local repository has no commits. Preserve the remote history and reconcile README contents before choosing an initial synchronization strategy. Do not force-push or silently overwrite the remote's initial files.
+At Stage 01 completion, the remote contained its initial README and local work had no commits. During the separately approved Stage 03 publication, remote history was preserved, README intent reconciled, and the feature branch was published. See [Stage 03 evidence](11-stage03-results.md). No force-push or merge occurred.
 
 Stage 01 is complete using user-confirmed settings plus public evidence that protection is enabled. Detailed authenticated verification/enforcement testing remains a Stage 03 follow-up, not a claimed result. No application/platform acceptance results are implied by the Docker smoke test.

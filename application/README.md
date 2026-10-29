@@ -37,7 +37,7 @@ application/
 `-- package-lock.json
 ```
 
-Container startup is implemented in Stage 03. The image passed the local HIGH/CRITICAL scan after pinning OpenSSL runtime libraries to 3.5.9-r0; GitHub-hosted CI/enforcement verification remains pending. Terraform, Kubernetes, monitoring deployment, and GitOps implementation belong in the separate [platform directory](../platform/README.md).
+Container startup is implemented in Stage 03. The image passed local and hosted HIGH/CRITICAL scans after pinning OpenSSL runtime libraries to 3.5.9-r0. Required-check failure/recovery was verified on the open PR. Terraform, Kubernetes, monitoring deployment, and GitOps implementation belong in the separate [platform directory](../platform/README.md).
 
 ## Prerequisites and isolation
 

@@ -2,7 +2,7 @@
 
 [Back to project overview](../README.md)
 
-Local application checks ran in Stage 02; see [actual results and limitations](10-stage02-results.md). Stage 03 added [local container/scan checks](11-stage03-results.md); initial findings were fixed and the patched image passed. Cloud, Kubernetes, hosted CI, and recovery-target checks have not run.
+Local application checks ran in Stage 02; see [actual results and limitations](10-stage02-results.md). Stage 03 added [container/scan and hosted CI checks](11-stage03-results.md); patched image, hosted gate, and required-check failure/recovery passed. Cloud, Kubernetes, and recovery-target checks have not run.
 
 Stage 01 workstation and isolated container checks are recorded separately in the [workstation record](09-workstation-and-isolation.md); they do not pass the application/platform checks below.
 
@@ -14,8 +14,8 @@ Stage 01 workstation and isolated container checks are recorded separately in th
 | APP-02 | Persistence | Records survive application pod replacement | Not run |
 | APP-03 | Input/database errors | Invalid input rejected; unavailable database reported explicitly | Passed locally, including actual database stop |
 | APP-04 | Health endpoints | Liveness/readiness distinguish process and dependency health appropriately | Passed locally: live 200, ready 503 during outage |
-| CI-01 | Broken test | CI fails and no release update is proposed | Local deliberate-runner failure verified; hosted CI pending |
-| CI-02 | Scan policy | Policy-blocking finding blocks release; exceptions are documented | Local HIGH blocked/LOW passed; patched image passes; hosted gate pending |
+| CI-01 | Broken test | CI fails and no release update is proposed | Passed: temporary application test failed required hosted job; PR blocked; removal restored success. No release-publication step exists yet |
+| CI-02 | Scan policy | Policy-blocking finding blocks release; exceptions are documented | Passed: HIGH blocked/LOW passed; initial image blocked; patched image and hosted scan passed; no exceptions |
 | CI-03 | Artifact traceability | Running digest maps to source commit and successful CI | Not run |
 | AWS-01 | Rebuild | Automation recreates intended resources without undocumented console changes | Not run |
 | AWS-02 | Restricted access | Admin/database endpoints are not publicly reachable | Not run |

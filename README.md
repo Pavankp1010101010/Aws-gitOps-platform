@@ -2,7 +2,7 @@
 
 A cost-conscious DevOps portfolio project demonstrating repeatable AWS infrastructure, controlled application delivery, monitoring, and recovery.
 
-> Current status: Stages 00-02 are complete. Stage 03 patched containers and image scan pass locally; approved feature-branch publication and hosted CI/protection verification are next. Project services are stopped. No AWS resources exist. Exact GitHub protection settings remain user-confirmed.
+> Current status: Stages 00-03 are complete. Patched containers, image scan, hosted CI, and required-check failure/recovery are verified. PR #1 remains open and unmerged. Project services are stopped. Stage 04 and AWS provisioning have not started.
 
 ## Start here
 
@@ -17,7 +17,7 @@ A cost-conscious DevOps portfolio project demonstrating repeatable AWS infrastru
 ```text
 aws-gitops-platform/
 |-- README.md                         Entry point and navigation
-|-- .github/workflows/                Prepared CI workflow; not uploaded/executed
+|-- .github/workflows/                Published, verified application CI workflow
 |-- stages/                           Ordered execution checklists and progress tracker
 |-- docs/
 |   |-- 01-project-brief.md            Problem, goals, scope, limitations
@@ -78,29 +78,29 @@ No EKS, RDS, AWS load balancer, or NAT Gateway is planned for the baseline. This
 | Deliverable | Status |
 |---|---|
 | Documentation and navigable folder structure | Created |
-| Stage plan | Stages 00-02 complete; Stage 03 in progress, hosted checks pending |
+| Stage plan | Stages 00-03 complete; Stage 04 awaits approval |
 | Application selection | Support Ticket Tracker |
 | Application language/framework decision | Node.js 24, Express, browser HTML/CSS/JavaScript, PostgreSQL confirmed |
-| Workstation and local Git | Verified tools and isolated Docker test; origin configured/fetched, no local commit or upload |
+| Workstation and local Git | Verified tools; published feature branch/PR #1; remote history preserved |
 | Application code and automated tests | Implemented; 13 checks passed and browser workflow verified |
 | Local development environment | App/database containers verified and stopped; volume and ignored .env retained |
-| Application container and image scan | Non-root Alpine build and patched HIGH/CRITICAL scan pass locally |
+| Application container and image scan | Non-root Alpine build and patched HIGH/CRITICAL scan pass locally and in CI |
 | Terraform and remote-state bootstrap | Not implemented |
 | K3s bootstrap and registry authentication | Not implemented |
-| CI | Workflow prepared locally; hosted execution and enforcement pending |
+| CI | Hosted tests/build/scan pass; deliberate failure blocked PR and recovery passed |
 | GitOps and monitoring deployment | Not implemented |
 | Recovery drills and measured results | Not performed |
 | AWS deployment | Not performed |
 
 ## Repository organization
 
-This directory is one initialized local Git repository on branch `main`, with the approved `origin` remote configured and fetched. No local commits or GitHub uploads have been created.
+This directory is a monorepo on feature branch `stage03/containers-ci`, tracking the approved `origin`. Reviewed application, platform guides, documentation, and CI configuration are published in [PR #1](https://github.com/Pavankp1010101010/Aws-gitOps-platform/pull/1), which is not merged.
 
 Keep application implementation in [application](application/README.md) and platform implementation in [platform](platform/README.md). Application-local development files belong with the application; AWS/Kubernetes deployment configuration belongs with the platform.
 
 The confirmed layout is a monorepo with separate application/platform folders. The prepared GitHub Actions workflow is in root `.github/workflows`, using explicit working directories and no path filters so future required checks do not remain pending on documentation-only PRs.
 
-The user created the public [GitHub repository](https://github.com/Pavankp1010101010/Aws-gitOps-platform). Remote `main` contains an initial README commit; preserve that history during later approved synchronization. Public API checks confirm branch protection is enabled. Detailed settings are user-confirmed, with effective PR/CI enforcement to be tested in Stage 03.
+The public [GitHub repository](https://github.com/Pavankp1010101010/Aws-gitOps-platform) retains its original main history. Public API checks confirm `Application tests and image scan` is required for everyone; an intentional failing application test blocked the PR and removing it restored passing CI. Other detailed protection selections remain user-confirmed. See [Stage 03 evidence](docs/11-stage03-results.md).
 
 See [workstation decisions and isolation](docs/09-workstation-and-isolation.md) before changing shared tools, starting services, or choosing ports.
 
