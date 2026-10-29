@@ -1,0 +1,62 @@
+name: support-ticket-dev
+services:
+  app:
+    image: support-ticket-tracker:stage03
+    build:
+      context: .
+    environment:
+      DATABASE_URL: postgresql://ticket_app:${POSTGRES_PASSWORD:?Run npm run setup:local first}@db:5432/ticket_dev
+      HOST: 0.0.0.0
+      PORT: 3100
+      APP_VERSION: ${APP_VERSION:-local}
+    ports:
+      - "127.0.0.1:3100:3100"
+    depends_on:
+      db:
+        condition: service_healthy
+    init: true
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 256m
+    cpus: 1
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3100/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 4s
+      retries: 12
+      start_period: 5s
+  migrate:
+    image: support-ticket-tracker:stage03
+    profiles: [tools]
+    environment:
+      DATABASE_URL: postgresql://ticket_app:${POSTGRES_PASSWORD:?Run npm run setup:local first}@db:5432/ticket_dev
+    command: ["node", "scripts/migrate.js"]
+    depends_on:
+      db:
+        condition: service_healthy
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+  db:
+    image: postgres:17-alpine@sha256:266d3c257594e195b309ae9d1805e54c788f1d7b375f56bf6c367aac6c917e7b
+    environment:
+      POSTGRES_USER: ticket_app
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run npm run setup:local first}
+      POSTGRES_DB: ticket_dev
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./database/init-test.sql:/docker-entrypoint-initdb.d/01-test.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ticket_app -d ticket_dev"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    mem_limit: 512m
+    cpus: 1
+volumes:
+  postgres-data:
