@@ -2,7 +2,7 @@
 
 [Stage index](README.md) | [Previous](05-k3s-and-argocd.md) | [Next](07-monitoring.md)
 
-Status: Not started.
+Status: In progress (2026-10-31).
 
 ## Entry conditions
 
