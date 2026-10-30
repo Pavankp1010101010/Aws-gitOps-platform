@@ -171,20 +171,9 @@ jobs:
             exit 1
           fi
 
-          python3 - "$IMAGE_DIGEST" "$SOURCE_SHA" <<'PY'
-          from pathlib import Path
-          import re
-          import sys
-
-          path = Path("platform/kubernetes/charts/support-ticket/values.yaml")
-          text = path.read_text(encoding="utf-8")
-          for key, value in (("digest", sys.argv[1]), ("sourceCommit", sys.argv[2])):
-              pattern = re.compile(rf"(?m)^  {key}: .+$")
-              text, count = pattern.subn(f"  {key}: {value}", text)
-              if count != 1:
-                  raise SystemExit(f"Expected exactly one image.{key} value in {path}, found {count}.")
-          path.write_text(text, encoding="utf-8", newline="\n")
-          PY
+          python3 platform/tests/update-image-digest.py \
+            platform/kubernetes/charts/support-ticket/values.yaml \
+            "$IMAGE_DIGEST" "$SOURCE_SHA"
 
           if git diff --quiet -- platform/kubernetes/charts/support-ticket/values.yaml; then
             echo "::notice::The deployment PR already contains this image digest."

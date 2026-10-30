@@ -70,6 +70,7 @@ jobs:
             platform/kubernetes/charts/support-ticket \
             --namespace support-ticket > "$RUNNER_TEMP/support-ticket-rendered.yaml"
           bash platform/tests/validate-chart.sh "$RUNNER_TEMP/support-ticket-rendered.yaml"
+          python3 -m unittest discover -s platform/tests -p "test_update_image_digest.py"
           node --check platform/tests/smoke-test.mjs
           node --test platform/tests/smoke-test.test.mjs
       - name: Verify test-runner failure propagation

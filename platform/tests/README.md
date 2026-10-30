@@ -12,6 +12,7 @@ Status: controlled failure-policy fixtures, rendered Helm-chart safety checks, a
 - `validate-chart.sh`: checks rendered chart resources for private ClusterIP Services, secret references (not rendered Secret objects), ordered migrations, PVC prune protection, and digest-pinned images.
 - `smoke-test.mjs`: synthetic ticket create/update/comment/list/retrieve check. It refuses non-loopback targets and leaves the synthetic record in place.
 - `smoke-test.test.mjs`: exercises the smoke helper against the application's direct-JSON API contract and verifies non-loopback targets are rejected.
+- `update-image-digest.py`: updates only the top-level app digest/source commit; `test_update_image_digest.py` verifies that the internal PostgreSQL digest remains untouched.
 
 See [scan policy](../delivery/scan-policy.md). These fixtures do not install vulnerable packages or prove hosted CI enforcement. The root workflow invokes them explicitly.
 
