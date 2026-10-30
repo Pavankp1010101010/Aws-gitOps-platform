@@ -1,0 +1,65 @@
+name: Stage 05 ECR smoke image
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/stage05-ecr-smoke.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  AWS_ACCOUNT_ID: "507720142035"
+  ECR_REPOSITORY: agtp-demo-support-ticket
+
+jobs:
+  publish-smoke-image:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+
+      - name: Configure AWS credentials with GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a
+        with:
+          role-to-assume: arn:aws:iam::507720142035:role/agtp-demo-image-publisher
+          role-session-name: stage05-ecr-${{ github.run_id }}
+          aws-region: ${{ env.AWS_REGION }}
+          allowed-account-ids: ${{ env.AWS_ACCOUNT_ID }}
+
+      - name: Log in to the private ECR registry
+        shell: bash
+        run: |
+          set -euo pipefail
+          registry="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+          aws ecr get-login-password --region "$AWS_REGION" |
+            docker login --username AWS --password-stdin "$registry"
+          echo "ECR_REGISTRY=$registry" >> "$GITHUB_ENV"
+
+      - name: Build and publish an immutable smoke image
+        id: publish
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="stage05-${GITHUB_RUN_ID}"
+          image="${ECR_REGISTRY}/${ECR_REPOSITORY}:${tag}"
+          docker build --file application/Dockerfile --tag "$image" application
+          docker push "$image"
+          digest="$(aws ecr describe-images \
+            --repository-name "$ECR_REPOSITORY" \
+            --image-ids "imageTag=${tag}" \
+            --query 'imageDetails[0].imageDigest' \
+            --output text)"
+          test "$digest" != "None"
+          echo "image_uri=$image" >> "$GITHUB_OUTPUT"
+          echo "Published immutable smoke image: ${ECR_REGISTRY}/${ECR_REPOSITORY}@${digest}"

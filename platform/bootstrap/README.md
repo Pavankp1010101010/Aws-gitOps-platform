@@ -77,6 +77,13 @@ sudo KUBECONFIG=/etc/rancher/k3s/k3s.yaml kubectl -n argocd get applications
 After applying the root Application, wait for its sync and health fields to
 report `Synced` and `Healthy` before recording GitOps acceptance.
 
+The `.github/workflows/stage05-ecr-smoke.yml` workflow uses the main-branch
+OIDC publisher role to build and publish an immutable private smoke image.
+After the workflow is merged, its main-branch push creates the first image;
+record the logged tag and digest. Pull it with `imagePullPolicy: Always`, then
+run the workflow again after at least 12 hours and pull the new run's unique
+tag to verify credential refresh. Never treat a cached image as proof.
+
 For private browser/API access, first establish a Session Manager port-forward
 to remote port 8443 (the local SSM plugin is required), then browse to
 `https://localhost:8443`. Stop the session when finished. Do not expose a
