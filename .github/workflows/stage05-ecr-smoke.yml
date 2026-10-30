@@ -62,4 +62,4 @@ jobs:
             --output text)"
           test "$digest" != "None"
           echo "image_uri=$image" >> "$GITHUB_OUTPUT"
-          echo "Published immutable smoke image: ${ECR_REGISTRY}/${ECR_REPOSITORY}@${digest}"
+          echo "Published immutable smoke image: ${image}@${digest}"
