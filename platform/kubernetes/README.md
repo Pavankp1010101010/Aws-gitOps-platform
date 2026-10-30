@@ -2,7 +2,7 @@
 
 [Platform overview](../README.md)
 
-Status: Stage 05 bootstrap is complete. The Stage 06 support-ticket Helm chart and Argo Application are implemented locally; live reconciliation and application acceptance tests remain pending.
+Status: Stage 05 bootstrap is complete. The Stage 06 Helm chart is synced and Healthy in Argo CD; the private app and PostgreSQL are Running with a Bound 4 Gi PVC. API CRUD smoke and persistence across app-pod replacement passed; image-publication PR flow remains to be verified.
 
 ## Intended contents
 
