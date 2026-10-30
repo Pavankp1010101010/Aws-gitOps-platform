@@ -2,7 +2,7 @@
 
 [Stage index](README.md) | [Previous](05-k3s-and-argocd.md) | [Next](07-monitoring.md)
 
-Status: In progress (2026-10-31). Core implementation is complete; hosted release behavior, live deployment, and end-to-end acceptance remain unverified.
+Status: In progress (2026-10-31). Argo CD deployed the merged chart. The private API smoke and application-pod persistence checks passed; the main-branch image publication and digest-PR path remains unverified.
 
 ## Entry conditions
 
@@ -17,11 +17,11 @@ Connect reviewed application changes to a working Kubernetes release without com
 - [x] Implement trusted-main image publication after passing application CI, including scanning and restricted OIDC.
 - [x] Implement digest-pinned GitOps update PRs and trace the image to its source commit.
 - [x] Implement Helm configuration for the application, internal PostgreSQL, storage, probes, and resources (no public ingress).
-- [x] Reference the database Secret without rendering or committing its value; live initialization is pending.
+- [x] Provision the database Secret out of band without rendering or committing its value.
 - [x] Implement an Argo Sync-wave migration Job after PostgreSQL is healthy and before the application rollout, using the checksum-verified migration runner.
-- [x] Configure Argo CD reconciliation and PVC protection from automated pruning; live behavior is unverified.
-- [x] Implement an explicit loopback-only synthetic API smoke check; running it against the live deployment is pending.
-- [x] Document private-only service exposure and SSM-based access; live access verification is pending.
+- [x] Configure Argo CD reconciliation and PVC protection from automated pruning; the child Application is Synced and Healthy.
+- [x] Implement and run the loopback-only synthetic API smoke check against the live deployment.
+- [x] Document private-only service exposure and SSM-based access.
 
 ## Work locations
 
@@ -31,11 +31,11 @@ Application build/migrations in [application](../application/README.md); Helm/Ar
 
 - [ ] Approved source merge produces a passing image and deployment-update PR.
 - [ ] Deployment PR merge results in Argo CD applying the exact image digest.
-- [ ] Smoke checks exercise ticket creation, updates/comments, and retrieval.
-- [ ] Ticket records survive application pod replacement.
-- [ ] Private database access and persistence behavior are verified.
+- [x] SSM-initiated loopback smoke check exercised ticket creation, updates/comments, filtered listing, and retrieval.
+- [x] Synthetic ticket and comment survived application pod replacement.
+- [x] PostgreSQL remained internal on ClusterIP; its PVC was Bound and application data persisted across app replacement.
 - [ ] Image digest traces back to source commit, CI run, and deployment PR.
-- [ ] CI does not independently apply application resources.
+- [x] CI does not independently apply application resources; Argo CD is the cluster reconciler.
 
 Record APP-02, CI-03, and CD-01 evidence.
 

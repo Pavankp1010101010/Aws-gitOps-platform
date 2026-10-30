@@ -2,7 +2,7 @@
 
 [Platform overview](../README.md) | [Acceptance matrix](../../docs/08-validation-and-evidence.md)
 
-Status: controlled failure-policy fixtures and rendered Helm-chart safety checks are implemented. Live application acceptance and remaining platform/load checks are pending.
+Status: controlled failure-policy fixtures, rendered Helm-chart safety checks, and smoke-helper contract tests are implemented. The live private API smoke and app-pod persistence check passed; remaining platform/load checks are pending.
 
 ## Implemented fixtures
 
@@ -11,19 +11,20 @@ Status: controlled failure-policy fixtures and rendered Helm-chart safety checks
 - `fixtures/trivy-low.json`: synthetic report; expected native Trivy convert exit 0 with the same gate.
 - `validate-chart.sh`: checks rendered chart resources for private ClusterIP Services, secret references (not rendered Secret objects), ordered migrations, PVC prune protection, and digest-pinned images.
 - `smoke-test.mjs`: synthetic ticket create/update/comment/list/retrieve check. It refuses non-loopback targets and leaves the synthetic record in place.
+- `smoke-test.test.mjs`: exercises the smoke helper against the application's direct-JSON API contract and verifies non-loopback targets are rejected.
 
 See [scan policy](../delivery/scan-policy.md). These fixtures do not install vulnerable packages or prove hosted CI enforcement. The root workflow invokes them explicitly.
 
 ## Future checks
 
 - Terraform formatting, validation, and plan review.
-- Run the smoke test against the private deployment through a local SSM port-forward:
+- Optional repeat of the smoke test against the private deployment through a local SSM port-forward:
   ```powershell
   $env:SMOKE_BASE_URL = 'http://127.0.0.1:18443'
   node platform/tests/smoke-test.mjs
   Remove-Item Env:\SMOKE_BASE_URL
   ```
-- Verify database persistence after replacing the application pod.
+- Verify database persistence after restarting PostgreSQL or rebuilding the host.
 - ECR private image pull after credential refresh.
 - Controlled failed-release recovery.
 - Prometheus rule tests and real notification delivery.

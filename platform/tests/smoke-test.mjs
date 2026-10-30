@@ -26,26 +26,26 @@ const created = await request('/api/tickets', 'POST', {
   title: `Stage 06 synthetic smoke ${marker}`,
   description: 'Automated private deployment verification.',
 });
-assert.ok(Number.isInteger(created.data?.id), 'Ticket creation did not return an ID.');
+assert.ok(Number.isInteger(created.id), 'Ticket creation did not return an ID.');
 
-const updated = await request(`/api/tickets/${created.data.id}`, 'PATCH', {
+const updated = await request(`/api/tickets/${created.id}`, 'PATCH', {
   status: 'in_progress',
   priority: 'high',
   assignee: 'stage06-smoke',
 });
-assert.equal(updated.data.status, 'in_progress');
-assert.equal(updated.data.priority, 'high');
+assert.equal(updated.status, 'in_progress');
+assert.equal(updated.priority, 'high');
 
 const comment = `Stage 06 synthetic smoke ${marker}`;
-await request(`/api/tickets/${created.data.id}/comments`, 'POST', { body: comment });
+await request(`/api/tickets/${created.id}/comments`, 'POST', { body: comment });
 
-const detail = await request(`/api/tickets/${created.data.id}`);
-assert.equal(detail.data.title, `Stage 06 synthetic smoke ${marker}`);
-assert.equal(detail.data.assignee, 'stage06-smoke');
-assert.ok(detail.data.comments.some(item => item.body === comment), 'Created comment was not returned.');
+const detail = await request(`/api/tickets/${created.id}`);
+assert.equal(detail.title, `Stage 06 synthetic smoke ${marker}`);
+assert.equal(detail.assignee, 'stage06-smoke');
+assert.ok(detail.comments.some(item => item.body === comment), 'Created comment was not returned.');
 
 const query = new URLSearchParams({ status: 'in_progress', priority: 'high', limit: '100' });
 const list = await request(`/api/tickets?${query}`);
-assert.ok(list.data.tickets.some(ticket => ticket.id === created.data.id), 'Updated ticket was not returned by the filtered list.');
+assert.ok(list.tickets.some(ticket => ticket.id === created.id), 'Updated ticket was not returned by the filtered list.');
 
-console.log(`Smoke test passed for ticket ${created.data.id}: create, update, comment, filtered list, and retrieval.`);
+console.log(`Smoke test passed for ticket ${created.id}: create, update, comment, filtered list, and retrieval.`);

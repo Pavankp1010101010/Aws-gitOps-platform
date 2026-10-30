@@ -116,6 +116,14 @@ The runtime deliberately has no npm. Run `node scripts/migrate.js` for container
 
 Changing the password in `.env` does not update an already initialized PostgreSQL volume. Perform a deliberate credential rotation rather than deleting data to fix a mismatch.
 
+## Private Kubernetes deployment (Stage 06)
+
+The support-ticket application and PostgreSQL are deployed in the `support-ticket` namespace through Argo CD. Both Services are `ClusterIP`; no public ingress or load balancer is configured. Do not expose this unauthenticated demo to the public internet.
+
+After an application change is merged to `main`, the release workflow builds and scans the image, publishes it to ECR, and proposes its immutable digest in a GitOps pull request. Argo CD deploys that digest only after the GitOps change is reviewed and merged. The application database password is provisioned out of band and is not stored in Git.
+
+For private API smoke checks, use an SSM-mediated loopback port-forward as described in the [platform test guide](../platform/tests/README.md).
+
 ## API
 
 | Method | Path | Purpose |
