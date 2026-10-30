@@ -5,7 +5,7 @@
 ## Cost model
 
 The approved project state bucket and its protection configuration have been created and verified. Stage 04 deployed the environment foundation, including an m7i-flex.large host, ECR, backup bucket, notifications, and alarm. The host is running and billable; the current Stage 05 host launched at
-2026-10-30 16:26 UTC after several bootstrap replacements. Earlier instances
+2026-10-30 17:45 UTC after several bootstrap replacements. Earlier instances
 also accrued runtime charges before replacement. S3 requests/storage can also
 consume credits.
 
@@ -43,25 +43,24 @@ $0.005 per public IPv4 address-hour.
 AWS rejected t3.medium as ineligible for this Free plan; neither historical t3
 estimate is the current host plan. On 2026-10-30, AWS reported m7i-flex.large
 (2 vCPU / 8 GiB) as Free Tier eligible and offered in us-east-1c, at
-$0.09576/hour. From the current host launch at 2026-10-30 16:26 UTC to the
-chosen deadline, approximately 47.1 hours remain; compute, one public IPv4
-and 30 GiB gp3 total about $4.90 before credits/tax. This is only the remaining
+$0.09576/hour. From the current host launch at 2026-10-30 17:45 UTC to the
+chosen deadline, approximately 45.7 hours remain; compute, one public IPv4
+and 30 GiB gp3 total about $4.76 before credits/tax. This is only the remaining
 core estimate for the current host, not total project spend; it excludes
 earlier host runtime, state/backups, ECR storage, data transfer, taxes, and
 other supporting usage.
 The c7i-flex.large alternative (2 vCPU / 4 GiB, $0.08479/hour) has a roughly
-$4.78 core estimate for that window, but less memory headroom. Neither price is
+$4.26 core estimate for that window, but less memory headroom. Neither price is
 a capacity reservation, complete quote, or spending cap.
 
 The earlier $5-$7 weekend range was a rough t3-based planning estimate and is
-superseded for the selected m7i-flex.large. Adding the approximately $2.95
-compute-core difference to that rough range suggests about $7.95-$9.95 for a
-similar window, before any use already incurred by the state bucket/partial
-environment, taxes, usage after the deadline, large transfers, snapshots, or
-paid options. This is not a guaranteed maximum; the $10 project usage boundary
-could be exceeded. Supporting services and credit eligibility must be reviewed
-against actual billing after reporting delay. Credits reduce eligible net
-payment but do not change gross usage.
+superseded for the selected m7i-flex.large. The $4.76 figure is only an
+estimate for the current host until the chosen deadline, not a guaranteed
+maximum or total project estimate. Previous host replacements, the state
+bucket, supporting services, taxes, usage after the deadline, large transfers,
+snapshots, or paid options add cost. The $10 project usage boundary could be
+exceeded. Review actual billing after its reporting delay; credits reduce
+eligible net payment but do not change gross usage.
 
 AWS `GetAccountPlanState` reported an active Free plan with $138.35 remaining
 credits on 2026-10-30. Its usage report contained no EC2 usage item. The user

@@ -18,9 +18,9 @@ Prepare a reproducible cluster that can pull private images and reconcile Git co
 - [x] Install/configure K3s, validate persistent storage across pod replacement, enable secret encryption, and configure private Traefik.
 - [x] Install the compatible ECR credential-provider binary and kubelet configuration using the instance role; a private image pull remains to be verified.
 - [x] Install pinned Argo CD `v3.5.6`; the root Application manifest is prepared.
-- [ ] Apply the root Application after its configured Git path is available on the target revision.
-- [ ] Configure read-only Git access appropriate to the repository visibility. The current public repository needs no Git credential; do not commit credentials if it becomes private.
-- [ ] Establish restricted dashboard/API access through management port forwarding.
+- [x] Apply the root Application after its configured Git path is available on the target revision.
+- [x] Configure read-only Git access appropriate to the repository visibility. The public repository requires no Git credential; Argo fetched and synced it.
+- [ ] Verify workstation access through restricted SSM dashboard/API port forwarding; the host-side loopback service is active.
 - [x] Document bootstrap logs, failure detection, reboot, and rerun behavior.
 
 ## Work locations
@@ -32,7 +32,7 @@ Prepare a reproducible cluster that can pull private images and reconcile Git co
 - [x] Cluster and services recover after a host reboot.
 - [ ] A private test image can be pulled using refreshable credentials.
 - [ ] Verify a fresh pull after the original ECR token lifetime; do not reuse an already cached image as proof.
-- [ ] Argo CD fetches the intended Git repository and reconciles a safe test resource.
+- [x] Argo CD fetched revision `c7f1bc58004fb5d95c0ec79073da471fe1963df7` and reconciled the `gitops-bootstrap-check` ConfigMap; the Application reports `Synced` and `Healthy`.
 - [x] Traefik is a ClusterIP Service on ports 80/443; no Kubernetes LoadBalancer Service appears.
 - [x] Administration endpoints remain inaccessible from the public internet; tested ports 22, 80, 443, 6443, and 8443 are unreachable, and the host security group has no ingress rules.
 
