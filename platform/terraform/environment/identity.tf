@@ -97,8 +97,8 @@ resource "aws_iam_role_policy" "image_publisher" {
       {
         Effect = "Allow"
         Action = [
-          "ecr:BatchCheckLayerAvailability", "ecr:InitiateLayerUpload", "ecr:UploadLayerPart",
-          "ecr:CompleteLayerUpload", "ecr:PutImage"
+          "ecr:BatchCheckLayerAvailability", "ecr:DescribeImages", "ecr:InitiateLayerUpload",
+          "ecr:UploadLayerPart", "ecr:CompleteLayerUpload", "ecr:PutImage"
         ]
         Resource = aws_ecr_repository.application.arn
       }

@@ -29,6 +29,8 @@ including owner ID `93963930` and repository ID `1438499998`; the previous
 name-only trust condition caused the STS `AccessDenied`. The Terraform change
 pins IAM trust to the exact immutable main-branch subject. The smoke workflow
 verifies the assumed AWS account using STS before logging in to ECR.
+Its `ecr:DescribeImages` permission is limited to the project repository so the
+workflow can record the pushed image digest without broader registry access.
 
 ## Work locations
 
