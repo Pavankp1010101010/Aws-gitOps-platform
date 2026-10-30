@@ -2,16 +2,17 @@
 
 [Platform overview](../README.md)
 
-Status: Stage 05 bootstrap manifests are implemented; live Argo CD reconciliation remains to be verified.
+Status: Stage 05 bootstrap is complete. The Stage 06 support-ticket Helm chart and Argo Application are implemented locally; live reconciliation and application acceptance tests remain pending.
 
 ## Intended contents
 
 - Argo CD root/platform/application definitions.
 - A safe bootstrap reconciliation ConfigMap under `cluster/`.
-- Helm chart for the application.
-- Deployment, Service, ingress, configuration, and restricted secret references.
+- Helm chart for the application and internal PostgreSQL.
+- Private ClusterIP Services, configuration, and restricted secret references; no public ingress is configured.
 - Readiness/liveness checks and measured resource requests/limits.
-- PostgreSQL StatefulSet or selected maintained chart with persistent storage.
+- PostgreSQL StatefulSet with persistent storage retained from automated pruning.
+- Argo Sync-wave migration Job using the application's checksum-verified migration runner (database wave 0, migration wave 1, application wave 2).
 - Backup CronJob and explicit backup success/failure reporting.
 - Namespace, service-account, and RBAC configuration.
 
@@ -27,3 +28,5 @@ Status: Stage 05 bootstrap manifests are implemented; live Argo CD reconciliatio
 - No baseline autoscaling claim; HPA requires a separate implemented and tested milestone.
 
 Stateful resources and backup retention must have deliberate deletion behavior. Automated pruning must not accidentally erase the only usable database or backup.
+
+The chart expects the `support-ticket-db` Secret (key `password`) to be provisioned in the application namespace out of band. Do not commit the generated password or render a Kubernetes Secret from Helm values. Create it on the private host through the approved SSM path before the first Argo sync.

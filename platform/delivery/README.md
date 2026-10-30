@@ -2,7 +2,7 @@
 
 [Platform overview](../README.md) | [Flows](../../docs/03-architecture-and-flows.md)
 
-Status: root `.github/workflows/application-ci.yml` is published on PR #1 and verified on GitHub. Application delivery/ECR/GitOps automation remains future work.
+Status: application CI is implemented. Stage 06 adds a main-branch release workflow and digest-pinned GitOps PR automation; hosted release behavior and the resulting PR checks still need verification.
 
 ## Implemented local CI configuration
 
@@ -22,18 +22,24 @@ The user selected `Application tests and image scan` as required. Public metadat
 
 Run application tests and validation without providing privileged AWS credentials to untrusted code.
 
+The application CI workflow also lints and renders the Helm chart and runs its rendered-manifest safety checks.
+
 ## Approved application changes
 
-1. Build an image tagged with the source commit.
-2. Scan against the documented Trivy policy.
-3. Authenticate to AWS using restricted GitHub OIDC.
-4. Publish the passing image to ECR.
-5. Resolve its immutable digest.
-6. Open a deployment-update pull request changing that digest in GitOps configuration.
+After a successful `Application CI` run for a push to `main`, the release workflow:
+
+1. Confirms the tested commit is still the latest application change on `main`.
+2. Builds the application image from that exact commit and scans it against the HIGH/CRITICAL Trivy policy.
+3. Authenticates to AWS using the restricted GitHub OIDC image-publisher role.
+4. Publishes the passing image to ECR and resolves its immutable digest.
+5. Opens or updates a deployment PR with the digest and source commit in Helm values.
+6. Dispatches application CI for the generated branch because GitHub's `GITHUB_TOKEN` does not trigger the usual pull-request workflow event.
+
+This automation is implemented but not yet verified end to end on GitHub. Confirm the dispatched CI run is attached to the deployment PR and satisfies its configured required check before merging.
 
 ## Deployment changes
 
-Validate chart/manifests, require configured review/checks, and merge. Argo CD applies the change; a separately implemented smoke-check mechanism reports user-facing success or failure.
+Validate chart/manifests, require configured review/checks, and merge. Argo CD applies the change. A user-facing smoke-check mechanism is not implemented yet.
 
 ## Infrastructure changes
 

@@ -2,21 +2,28 @@
 
 [Platform overview](../README.md) | [Acceptance matrix](../../docs/08-validation-and-evidence.md)
 
-Status: controlled failure-policy fixtures implemented; remaining platform/load checks are planned.
+Status: controlled failure-policy fixtures and rendered Helm-chart safety checks are implemented. Live application acceptance and remaining platform/load checks are pending.
 
 ## Implemented fixtures
 
 - `fixtures/intentional-failure.mjs`: explicit runner-failure test; expected exit 1. Do not include it in the passing application suite.
 - `fixtures/trivy-high.json`: synthetic report; expected native Trivy convert exit 1 with HIGH/CRITICAL gate.
 - `fixtures/trivy-low.json`: synthetic report; expected native Trivy convert exit 0 with the same gate.
+- `validate-chart.sh`: checks rendered chart resources for private ClusterIP Services, secret references (not rendered Secret objects), ordered migrations, PVC prune protection, and digest-pinned images.
+- `smoke-test.mjs`: synthetic ticket create/update/comment/list/retrieve check. It refuses non-loopback targets and leaves the synthetic record in place.
 
 See [scan policy](../delivery/scan-policy.md). These fixtures do not install vulnerable packages or prove hosted CI enforcement. The root workflow invokes them explicitly.
 
 ## Future checks
 
 - Terraform formatting, validation, and plan review.
-- Helm linting/rendering and Kubernetes configuration validation.
-- User-facing application smoke test.
+- Run the smoke test against the private deployment through a local SSM port-forward:
+  ```powershell
+  $env:SMOKE_BASE_URL = 'http://127.0.0.1:18443'
+  node platform/tests/smoke-test.mjs
+  Remove-Item Env:\SMOKE_BASE_URL
+  ```
+- Verify database persistence after replacing the application pod.
 - ECR private image pull after credential refresh.
 - Controlled failed-release recovery.
 - Prometheus rule tests and real notification delivery.

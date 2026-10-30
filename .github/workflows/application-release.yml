@@ -1,0 +1,222 @@
+name: Application release and GitOps update
+
+on:
+  workflow_run:
+    workflows: ["Application CI"]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: application-release-main
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: us-east-1
+  AWS_ACCOUNT_ID: "507720142035"
+  ECR_REPOSITORY: agtp-demo-support-ticket
+
+jobs:
+  release:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    permissions:
+      actions: write
+      contents: write
+      id-token: write
+      pull-requests: write
+    steps:
+      - name: Check out the tested source commit
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Confirm the source commit changed application files
+        id: source
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          parent="${SOURCE_SHA}^1"
+          if ! git rev-parse --verify "$parent" >/dev/null 2>&1; then
+            echo "::notice::No first parent was found; skipping image publication."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if git diff --quiet "$parent" "$SOURCE_SHA" -- application/; then
+            echo "::notice::The tested commit did not change application files."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git fetch origin main
+          deployed_source="$(git show origin/main:platform/kubernetes/charts/support-ticket/values.yaml |
+            sed -n 's/^  sourceCommit: //p')"
+          if [[ "$deployed_source" == "$SOURCE_SHA" ]]; then
+            echo "::notice::This source commit is already recorded in the deployed GitOps values."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Configure AWS credentials with GitHub OIDC
+        if: steps.source.outputs.changed == 'true'
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a
+        with:
+          role-to-assume: arn:aws:iam::507720142035:role/agtp-demo-image-publisher
+          role-session-name: app-release-${{ github.run_id }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Verify the assumed AWS account
+        if: steps.source.outputs.changed == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          account="$(aws sts get-caller-identity --query Account --output text)"
+          if [[ "$account" != "$AWS_ACCOUNT_ID" ]]; then
+            echo "::error::Expected AWS account ${AWS_ACCOUNT_ID}, got ${account}"
+            exit 1
+          fi
+
+      - name: Log in to the private ECR registry
+        if: steps.source.outputs.changed == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          registry="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+          aws ecr get-login-password --region "$AWS_REGION" |
+            docker login --username AWS --password-stdin "$registry"
+          echo "ECR_REGISTRY=$registry" >> "$GITHUB_ENV"
+
+      - name: Build, scan, and publish the tested application image
+        if: steps.source.outputs.changed == 'true'
+        id: image
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+          TRIVY_IMAGE: aquasec/trivy:0.69.3@sha256:bcc376de8d77cfe086a917230e818dc9f8528e3c852f7b1aff648949b6258d1c
+        run: |
+          set -euo pipefail
+          tag="git-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          image="${ECR_REGISTRY}/${ECR_REPOSITORY}:${tag}"
+          docker build --file application/Dockerfile \
+            --label "org.opencontainers.image.revision=${SOURCE_SHA}" \
+            --tag "$image" application
+          mkdir -p "$RUNNER_TEMP/image-scan" "$RUNNER_TEMP/trivy-cache"
+          docker save --output "$RUNNER_TEMP/image-scan/application.tar" "$image"
+          docker run --rm \
+            -v "$RUNNER_TEMP/image-scan:/scan:ro" \
+            -v "$RUNNER_TEMP/trivy-cache:/cache" \
+            "$TRIVY_IMAGE" image --cache-dir /cache --scanners vuln \
+            --severity HIGH,CRITICAL --exit-code 1 --timeout 10m \
+            --input /scan/application.tar
+          docker push "$image"
+          digest="$(aws ecr describe-images \
+            --repository-name "$ECR_REPOSITORY" \
+            --image-ids "imageTag=${tag}" \
+            --query 'imageDetails[0].imageDigest' \
+            --output text)"
+          if [[ ! "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+            echo "::error::ECR returned an invalid image digest."
+            exit 1
+          fi
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+          echo "Published ${image}@${digest} from ${SOURCE_SHA}"
+
+      - name: Check out the current main branch for the deployment update
+        if: steps.source.outputs.changed == 'true'
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ github.token }}
+
+      - name: Open or update the digest-pinned deployment PR
+        if: steps.source.outputs.changed == 'true'
+        id: deployment
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+          IMAGE_DIGEST: ${{ steps.image.outputs.digest }}
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          if ! git merge-base --is-ancestor "$SOURCE_SHA" origin/main; then
+            echo "::error::Tested source commit is not present on main."
+            exit 1
+          fi
+          if ! git diff --quiet "$SOURCE_SHA"..origin/main -- application/; then
+            echo "::notice::A newer application change is already on main; skipping this stale image."
+            echo "created=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          short_sha="${SOURCE_SHA:0:12}"
+          branch="deploy/application-${short_sha}"
+          if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
+            git fetch origin "$branch"
+            git checkout --force -B "$branch" FETCH_HEAD
+          else
+            git checkout -b "$branch" origin/main
+          fi
+          pr_state="$(gh pr view "$branch" --json state --jq '.state' 2>/dev/null || true)"
+          if [[ "$pr_state" == "CLOSED" ]]; then
+            echo "::error::The deployment PR for this source commit was closed without merging."
+            exit 1
+          fi
+
+          python3 - "$IMAGE_DIGEST" "$SOURCE_SHA" <<'PY'
+          from pathlib import Path
+          import re
+          import sys
+
+          path = Path("platform/kubernetes/charts/support-ticket/values.yaml")
+          text = path.read_text(encoding="utf-8")
+          for key, value in (("digest", sys.argv[1]), ("sourceCommit", sys.argv[2])):
+              pattern = re.compile(rf"(?m)^  {key}: .+$")
+              text, count = pattern.subn(f"  {key}: {value}", text)
+              if count != 1:
+                  raise SystemExit(f"Expected exactly one image.{key} value in {path}, found {count}.")
+          path.write_text(text, encoding="utf-8", newline="\n")
+          PY
+
+          if git diff --quiet -- platform/kubernetes/charts/support-ticket/values.yaml; then
+            echo "::notice::The deployment PR already contains this image digest."
+            if [[ "$pr_state" != "OPEN" ]]; then
+              echo "::error::The image digest is unchanged but no open deployment PR exists."
+              exit 1
+            fi
+            gh workflow run application-ci.yml --ref "$branch"
+            echo "created=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add platform/kubernetes/charts/support-ticket/values.yaml
+          git commit -m "chore(deploy): update application image to ${short_sha}"
+          git push origin "$branch"
+
+          pr_state="$(gh pr view "$branch" --json state --jq '.state' 2>/dev/null || true)"
+          if [[ "$pr_state" == "OPEN" ]]; then
+            gh pr edit "$branch" \
+              --title "Deploy support ticket application ${short_sha}" \
+              --body "Automated deployment update for tested source commit \`${SOURCE_SHA}\` and immutable image digest \`${IMAGE_DIGEST}\`. Application tests and the HIGH/CRITICAL image scan passed before publication. Review the rendered Helm change before merging."
+          elif [[ -z "$pr_state" ]]; then
+            gh pr create \
+              --base main \
+              --head "$branch" \
+              --title "Deploy support ticket application ${short_sha}" \
+              --body "Automated deployment update for tested source commit \`${SOURCE_SHA}\` and immutable image digest \`${IMAGE_DIGEST}\`. Application tests and the HIGH/CRITICAL image scan passed before publication. Review the rendered Helm change before merging."
+          else
+            echo "::error::The deployment PR is not open; refusing to update a closed PR."
+            exit 1
+          fi
+          gh workflow run application-ci.yml --ref "$branch"
+          echo "created=true" >> "$GITHUB_OUTPUT"
