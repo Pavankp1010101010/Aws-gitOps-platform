@@ -41,6 +41,6 @@ Local application and CI checks come before paid infrastructure in the recommend
 
 ## Next intended action
 
-Stages 00-03 are complete; see [hosted CI and enforcement evidence](11-stage03-results.md). PR #1 is unmerged. Before Stage 04, obtain separate approval for AWS region, budget, provisioning, and runtime; do not start cloud work automatically.
+Stages 00-03 are complete and PR #1 is merged. Stage 04 has [local Terraform implementation and mock validation](12-stage04-local-results.md) for us-east-1/AZ us-east-1c. Next obtain authorization for account/free-allowance checks, review capacity/pricing, and approve budget/runtime and exact plans before any cloud provisioning.
 
-Application source, tests, migrations, Dockerfile, Compose configuration, and hosted CI are implemented. AWS/Kubernetes infrastructure is not implemented.
+Application source, tests, migrations, Dockerfile, Compose, hosted CI, and local AWS Terraform configuration are implemented. No AWS infrastructure or Kubernetes platform is deployed.

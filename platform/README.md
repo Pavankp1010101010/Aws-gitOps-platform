@@ -2,7 +2,7 @@
 
 [Back to project overview](../README.md)
 
-Status: documentation only. No infrastructure or deployment configuration is executable yet.
+Status: application CI and failure-policy fixtures are implemented; Stage 04 AWS foundation is deployed and verified. Stage 05 K3s/Argo CD bootstrap is in progress on the existing host. Kubernetes/bootstrap configuration is being made reproducible; monitoring remains planned.
 
 ## Navigation
 
@@ -23,4 +23,4 @@ Bootstrap creates the initial Argo CD/root application once; it must not continu
 
 ## Repository note
 
-If published as a separate repository, workflows belong at that repository's root `.github/workflows`. This documentation folder named `delivery` is not a GitHub Actions workflow discovery path.
+This project uses a monorepo. Executable workflows belong at root `.github/workflows`. The `delivery` folder holds platform delivery documentation/policy, not GitHub Actions discovery files.

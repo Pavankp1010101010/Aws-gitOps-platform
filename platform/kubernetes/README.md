@@ -2,11 +2,12 @@
 
 [Platform overview](../README.md)
 
-Status: planned. No chart or Kubernetes manifests exist.
+Status: Stage 05 bootstrap manifests are implemented; live Argo CD reconciliation remains to be verified.
 
 ## Intended contents
 
 - Argo CD root/platform/application definitions.
+- A safe bootstrap reconciliation ConfigMap under `cluster/`.
 - Helm chart for the application.
 - Deployment, Service, ingress, configuration, and restricted secret references.
 - Readiness/liveness checks and measured resource requests/limits.
