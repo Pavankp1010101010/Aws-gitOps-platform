@@ -3,8 +3,10 @@
 [Platform overview](../README.md) | [Stage 05](../../stages/05-k3s-and-argocd.md)
 
 Status: Deployed on 2026-10-30. Cloud-init, K3s, encrypted secrets, Traefik,
-Argo CD readiness, and no-drift checks pass. GitOps sync, a private image pull,
-token-refresh, workstation port-forward, and reboot recovery remain pending.
+Argo CD readiness, reboot recovery, and no-drift checks pass. The root
+Application synced revision `c7f1bc58004fb5d95c0ec79073da471fe1963df7` and
+reconciled its ConfigMap smoke test. A private image pull, token-refresh, and
+workstation port-forward remain pending.
 
 ## Pinned components
 
@@ -34,7 +36,9 @@ port forwarding to reach it. The security group remains without inbound rules.
 
 The root Application reads the public project repository over unauthenticated
 HTTPS and targets `platform/kubernetes/cluster`. Its initial safe test resource
-is a ConfigMap. It does not prune Git resources automatically. Apply
+is a ConfigMap. Argo auto-detects Kustomize from the path's
+`kustomization.yaml`; do not force directory processing. It does not prune Git
+resources automatically. Apply
 `/etc/agtp/root-app.yaml` only after that path is present on the configured Git
 revision; the bootstrap does not report a false success while the repository
 path is missing.
