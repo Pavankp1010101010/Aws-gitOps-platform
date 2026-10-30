@@ -27,6 +27,7 @@ npm-debug.log*
 *.tfplan
 *.tfvars
 *.tfvars.json
+backend.hcl
 !*.tfvars.example
 crash.log
 crash.*.log

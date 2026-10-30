@@ -1,0 +1,14 @@
+#cloud-config
+write_files:
+  - path: /usr/local/sbin/agtp-stage05-bootstrap.sh
+    owner: root:root
+    permissions: "0750"
+    encoding: b64
+    content: ${bootstrap_script}
+  - path: /etc/agtp/root-app.yaml
+    owner: root:root
+    permissions: "0640"
+    encoding: b64
+    content: ${root_app}
+runcmd:
+  - ["/usr/local/sbin/agtp-stage05-bootstrap.sh"]

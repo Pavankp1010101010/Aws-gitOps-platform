@@ -2,7 +2,7 @@
 
 A cost-conscious DevOps portfolio project demonstrating repeatable AWS infrastructure, controlled application delivery, monitoring, and recovery.
 
-> Current status: Stages 00-03 are complete. Patched containers, image scan, hosted CI, and required-check failure/recovery are verified. PR #1 remains open and unmerged. Project services are stopped. Stage 04 and AWS provisioning have not started.
+> Current status: Stages 00-04 are complete; Stage 05 is in progress on the existing m7i-flex.large host. The 29 Stage 04 resources have no Terraform drift. SSM Run Command succeeded, the security group has no ingress, and the alarm is OK. SNS policy, budget, ECR, and backup safeguards are verified. The corrected SNS subscription is confirmed; one stale unconfirmed request remains from the earlier address typo. Cost monitoring and cleanup remain due by the agreed deadline.
 
 ## Start here
 
@@ -31,6 +31,7 @@ aws-gitops-platform/
 |   |-- 09-workstation-and-isolation.md Confirmed setup, checks, safety boundaries
 |   |-- 10-stage02-results.md          Actual local application checks and limits
 |   |-- 11-stage03-results.md          Container/scan results and completion blockers
+|   |-- 12-stage04-local-results.md    Terraform validation, tests, and AWS approval gates
 |   `-- runbooks/
 |       |-- release-recovery.md       Failed application release recovery
 |       `-- database-and-host-recovery.md
@@ -47,7 +48,7 @@ aws-gitops-platform/
 |   `-- package.json                  Pinned dependencies and commands
 `-- platform/
     |-- README.md                     Platform ownership and layout
-    |-- terraform/README.md           Planned AWS infrastructure
+    |-- terraform/                    Bootstrap/environment roots, locks, mock tests, guide
     |-- bootstrap/README.md           Planned host and cluster initialization
     |-- delivery/README.md            Planned CI workflows and GitOps resources
     |-- kubernetes/README.md          Planned Helm and Argo CD configuration
@@ -55,7 +56,7 @@ aws-gitops-platform/
     `-- tests/README.md               Planned platform checks and load tests
 ```
 
-Application/container code and CI configuration are implemented locally. AWS/Kubernetes platform deployment remains planned; scan fixtures and delivery policy live under the platform directory.
+Application/container code and hosted CI are implemented. AWS Terraform configuration is locally validated but unapplied. Kubernetes platform deployment remains planned.
 
 ## Intended platform
 
@@ -78,14 +79,14 @@ No EKS, RDS, AWS load balancer, or NAT Gateway is planned for the baseline. This
 | Deliverable | Status |
 |---|---|
 | Documentation and navigable folder structure | Created |
-| Stage plan | Stages 00-03 complete; Stage 04 awaits approval |
+| Stage plan | Stages 00-04 complete; Stage 05 in progress |
 | Application selection | Support Ticket Tracker |
 | Application language/framework decision | Node.js 24, Express, browser HTML/CSS/JavaScript, PostgreSQL confirmed |
 | Workstation and local Git | Verified tools; published feature branch/PR #1; remote history preserved |
 | Application code and automated tests | Implemented; 13 checks passed and browser workflow verified |
 | Local development environment | App/database containers verified and stopped; volume and ignored .env retained |
 | Application container and image scan | Non-root Alpine build and patched HIGH/CRITICAL scan pass locally and in CI |
-| Terraform and remote-state bootstrap | Not implemented |
+| Terraform and remote-state bootstrap | Bootstrap and environment applied; 29 resources verified with no drift; six mocked tests pass |
 | K3s bootstrap and registry authentication | Not implemented |
 | CI | Hosted tests/build/scan pass; deliberate failure blocked PR and recovery passed |
 | GitOps and monitoring deployment | Not implemented |
@@ -94,7 +95,7 @@ No EKS, RDS, AWS load balancer, or NAT Gateway is planned for the baseline. This
 
 ## Repository organization
 
-This directory is a monorepo on feature branch `stage03/containers-ci`, tracking the approved `origin`. Reviewed application, platform guides, documentation, and CI configuration are published in [PR #1](https://github.com/Pavankp1010101010/Aws-gitOps-platform/pull/1), which is not merged.
+This directory is a monorepo on local feature branch `stage04/aws-foundation`, based on merged `origin/main`. [PR #1](https://github.com/Pavankp1010101010/Aws-gitOps-platform/pull/1) merged the reviewed application, container CI, and project guides. Stage 04 changes have not been committed or uploaded.
 
 Keep application implementation in [application](application/README.md) and platform implementation in [platform](platform/README.md). Application-local development files belong with the application; AWS/Kubernetes deployment configuration belongs with the platform.
 

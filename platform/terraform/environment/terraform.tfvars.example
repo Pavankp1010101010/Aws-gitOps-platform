@@ -1,0 +1,15 @@
+# Examples only. No AMI, instance size, budget, or account is approved for apply.
+account_id        = "123456789012"
+region            = "us-east-1"
+availability_zone = "us-east-1c"
+instance_type     = "t3.medium"
+ami_id            = "ami-00000000000000000"
+root_volume_gib   = 30
+backup_bucket_name = "replace-with-globally-unique-project-backup-name"
+notification_email = "replace@example.invalid"
+monthly_budget_usd = 10
+teardown_after_utc = "2099-01-01T00:00:00Z"
+
+# Inspect the account first. Reuse an existing shared provider; never overwrite it.
+create_github_oidc_provider        = false
+existing_github_oidc_provider_arn = "arn:aws:iam::123456789012:oidc-provider/token.actions.githubusercontent.com"
