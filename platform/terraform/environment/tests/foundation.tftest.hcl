@@ -14,6 +14,13 @@ variables {
 
 run "restricted_foundation_plan" {
   command = plan
+  override_resource {
+    target          = aws_ecr_repository.application
+    override_during = plan
+    values = {
+      arn = "arn:aws:ecr:us-east-1:123456789012:repository/synthetic-project"
+    }
+  }
   assert {
     condition     = length(aws_security_group.host.ingress) == 0
     error_message = "No public application, admin, SSH, API, or database ingress is allowed."
@@ -49,6 +56,13 @@ run "restricted_foundation_plan" {
   assert {
     condition     = jsondecode(aws_iam_role.image_publisher.assume_role_policy).Statement[0].Condition.StringEquals["token.actions.githubusercontent.com:sub"] == "repo:Pavankp1010101010@93963930/Aws-gitOps-platform@1438499998:ref:refs/heads/main"
     error_message = "Image publisher trust must be exact immutable repository/main, not pull requests."
+  }
+  assert {
+    condition = contains(
+      jsondecode(aws_iam_role_policy.image_publisher.policy).Statement[1].Action,
+      "ecr:DescribeImages"
+    ) && jsondecode(aws_iam_role_policy.image_publisher.policy).Statement[1].Resource == aws_ecr_repository.application.arn
+    error_message = "Image digest verification must be scoped to the project repository."
   }
 }
 
