@@ -16,12 +16,12 @@ Prepare a reproducible cluster that can pull private images and reconcile Git co
 
 - [x] Implement pinned cloud-init/bootstrap and reapply through reviewed Terraform as needed; final cloud-init succeeded and Terraform reports no drift.
 - [x] Install/configure K3s, validate persistent storage across pod replacement, enable secret encryption, and configure private Traefik.
-- [x] Install the compatible ECR credential-provider binary and kubelet configuration using the instance role; a private image pull remains to be verified.
-- [ ] Publish and pull an immutable private smoke image using the restricted GitHub OIDC workflow.
+- [x] Install the compatible ECR credential-provider binary and kubelet configuration using the instance role; a fresh private image pull using `imagePullPolicy: Always` is verified below.
+- [x] Publish and pull an immutable private smoke image using the restricted GitHub OIDC workflow; the successful pull is recorded below, while the workflow's final digest lookup awaits the scoped permission fix.
 - [x] Install pinned Argo CD `v3.5.6`; the root Application manifest is prepared.
 - [x] Apply the root Application after its configured Git path is available on the target revision.
 - [x] Configure read-only Git access appropriate to the repository visibility. The public repository requires no Git credential; Argo fetched and synced it.
-- [ ] Verify workstation access through restricted SSM dashboard/API port forwarding; the host-side loopback service is active.
+- [x] Verify workstation access through restricted SSM dashboard/API port forwarding; the Argo dashboard returned HTTP 200 through a loopback-only local tunnel.
 - [x] Document bootstrap logs, failure detection, reboot, and rerun behavior.
 
 This repository uses [GitHub's immutable OIDC subject format](https://docs.github.com/en/actions/reference/security/oidc#immutable-subject-claims),
@@ -32,6 +32,12 @@ verifies the assumed AWS account using STS before logging in to ECR.
 Its `ecr:DescribeImages` permission is limited to the project repository so the
 workflow can record the pushed image digest without broader registry access.
 
+## Stage 05 validation evidence
+
+- GitHub Actions run [41107993982](https://github.com/Pavankp1010101010/Aws-gitOps-platform/actions/runs/41107993982) assumed the restricted role and pushed immutable tag `stage05-41107993982`, digest `sha256:895f426eeb61a31faf4744b2249215b5ea0c91e08dc303306d8b8163d453d4a9`. The job then failed at its final `ecr:DescribeImages` lookup; the repository-scoped permission fix is in review branch `stage05/ecr-digest-permission`.
+- A one-off pod with `imagePullPolicy: Always` reached `Running` using that ECR image. Its reported image ID matched the digest above; the temporary namespace was deleted after the test.
+- SSM port forwarding to the host's loopback Argo endpoint returned HTTP 200. The workstation listener was `127.0.0.1:18443`; no public ingress was opened.
+
 ## Work locations
 
 [Bootstrap](../platform/bootstrap/README.md) and [Kubernetes](../platform/kubernetes/README.md). Update Terraform only for infrastructure/bootstrap wiring.
@@ -39,7 +45,7 @@ workflow can record the pushed image digest without broader registry access.
 ## Exit checks
 
 - [x] Cluster and services recover after a host reboot.
-- [ ] A private test image can be pulled using refreshable credentials.
+- [x] A private test image can be pulled using the K3s ECR credential provider; the unique smoke tag used `imagePullPolicy: Always`.
 - [ ] Verify a fresh pull after the original ECR token lifetime; do not reuse an already cached image as proof.
 - [x] Argo CD fetched revision `c7f1bc58004fb5d95c0ec79073da471fe1963df7` and reconciled the `gitops-bootstrap-check` ConfigMap; the Application reports `Synced` and `Healthy`.
 - [x] Traefik is a ClusterIP Service on ports 80/443; no Kubernetes LoadBalancer Service appears.
