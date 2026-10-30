@@ -1,0 +1,38 @@
+nameOverride: ""
+fullnameOverride: ""
+
+image:
+  repository: 507720142035.dkr.ecr.us-east-1.amazonaws.com/agtp-demo-support-ticket
+  digest: sha256:6788765547d33fe8e9c57adeced333d851725b3cbec5a573fd801664b9be7c57
+  sourceCommit: dee59eb0f5530ebe5f2b53ebbc9a513804f67312
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+service:
+  port: 3100
+
+database:
+  image: postgres:17-alpine
+  digest: sha256:266d3c257594e195b309ae9d1805e54c788f1d7b375f56bf6c367aac6c917e7b
+  name: support_tickets
+  username: ticket_app
+  secretName: support-ticket-db
+  secretKey: password
+  storage: 4Gi
+
+resources:
+  app:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  database:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi

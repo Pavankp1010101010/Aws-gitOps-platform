@@ -53,6 +53,24 @@ jobs:
         run: |
           npm run check
           npm test
+      - name: Validate GitOps Helm chart
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="3.18.6"
+          archive="helm-v${version}-linux-amd64.tar.gz"
+          curl --fail --location --silent --show-error \
+            "https://get.helm.sh/${archive}" --output "$RUNNER_TEMP/$archive"
+          echo "3f43c0aa57243852dd542493a0f54f1396c0bc8ec7296bbb2c01e802010819ce  $RUNNER_TEMP/$archive" |
+            sha256sum --check --status
+          tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/linux-amd64" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/linux-amd64/helm" lint --strict platform/kubernetes/charts/support-ticket
+          "$RUNNER_TEMP/linux-amd64/helm" template support-ticket \
+            platform/kubernetes/charts/support-ticket \
+            --namespace support-ticket > "$RUNNER_TEMP/support-ticket-rendered.yaml"
+          bash platform/tests/validate-chart.sh "$RUNNER_TEMP/support-ticket-rendered.yaml"
+          node --check platform/tests/smoke-test.mjs
       - name: Verify test-runner failure propagation
         shell: bash
         run: |

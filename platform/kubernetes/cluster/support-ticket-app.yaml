@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: support-ticket
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: aws-gitops-platform
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Pavankp1010101010/Aws-gitOps-platform.git
+    targetRevision: main
+    path: platform/kubernetes/charts/support-ticket
+    helm:
+      releaseName: support-ticket
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: support-ticket
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: false
+    syncOptions:
+      - CreateNamespace=true
