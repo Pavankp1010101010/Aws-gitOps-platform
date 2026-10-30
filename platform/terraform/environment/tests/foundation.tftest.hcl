@@ -47,8 +47,8 @@ run "restricted_foundation_plan" {
     error_message = "A shared OIDC provider must not be recreated by default."
   }
   assert {
-    condition     = jsondecode(aws_iam_role.image_publisher.assume_role_policy).Statement[0].Condition.StringEquals["token.actions.githubusercontent.com:sub"] == "repo:Pavankp1010101010/Aws-gitOps-platform:ref:refs/heads/main"
-    error_message = "Image publisher trust must be exact repository/main, not pull requests."
+    condition     = jsondecode(aws_iam_role.image_publisher.assume_role_policy).Statement[0].Condition.StringEquals["token.actions.githubusercontent.com:sub"] == "repo:Pavankp1010101010@93963930/Aws-gitOps-platform@1438499998:ref:refs/heads/main"
+    error_message = "Image publisher trust must be exact immutable repository/main, not pull requests."
   }
 }
 

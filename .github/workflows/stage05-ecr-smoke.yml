@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - .github/workflows/stage05-ecr-smoke.yml
+      - platform/terraform/environment/identity.tf
   workflow_dispatch:
 
 permissions:
@@ -35,7 +36,16 @@ jobs:
           role-to-assume: arn:aws:iam::507720142035:role/agtp-demo-image-publisher
           role-session-name: stage05-ecr-${{ github.run_id }}
           aws-region: ${{ env.AWS_REGION }}
-          allowed-account-ids: ${{ env.AWS_ACCOUNT_ID }}
+
+      - name: Verify the assumed AWS account
+        shell: bash
+        run: |
+          set -euo pipefail
+          account="$(aws sts get-caller-identity --query Account --output text)"
+          if [[ "$account" != "$AWS_ACCOUNT_ID" ]]; then
+            echo "::error::Expected AWS account ${AWS_ACCOUNT_ID}, got ${account}"
+            exit 1
+          fi
 
       - name: Log in to the private ECR registry
         shell: bash

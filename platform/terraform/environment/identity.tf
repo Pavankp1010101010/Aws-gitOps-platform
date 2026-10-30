@@ -1,3 +1,9 @@
+locals {
+  github_repository_owner_id = "93963930"
+  github_repository_id       = "1438499998"
+  github_repository_subject  = "repo:${replace(var.github_repository, "/", "@${local.github_repository_owner_id}/")}@${local.github_repository_id}:ref:refs/heads/main"
+}
+
 resource "aws_iam_role" "host" {
   name = "${local.name}-host"
   assume_role_policy = jsonencode({
@@ -64,7 +70,7 @@ resource "aws_iam_role" "image_publisher" {
       Condition = {
         StringEquals = {
           "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
-          "token.actions.githubusercontent.com:sub" = "repo:${var.github_repository}:ref:refs/heads/main"
+          "token.actions.githubusercontent.com:sub" = local.github_repository_subject
         }
       }
     }]

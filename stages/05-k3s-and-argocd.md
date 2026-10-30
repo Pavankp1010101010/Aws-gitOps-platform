@@ -24,6 +24,12 @@ Prepare a reproducible cluster that can pull private images and reconcile Git co
 - [ ] Verify workstation access through restricted SSM dashboard/API port forwarding; the host-side loopback service is active.
 - [x] Document bootstrap logs, failure detection, reboot, and rerun behavior.
 
+This repository uses [GitHub's immutable OIDC subject format](https://docs.github.com/en/actions/reference/security/oidc#immutable-subject-claims),
+including owner ID `93963930` and repository ID `1438499998`; the previous
+name-only trust condition caused the STS `AccessDenied`. The Terraform change
+pins IAM trust to the exact immutable main-branch subject. The smoke workflow
+verifies the assumed AWS account using STS before logging in to ECR.
+
 ## Work locations
 
 [Bootstrap](../platform/bootstrap/README.md) and [Kubernetes](../platform/kubernetes/README.md). Update Terraform only for infrastructure/bootstrap wiring.
