@@ -17,6 +17,7 @@ Prepare a reproducible cluster that can pull private images and reconcile Git co
 - [x] Implement pinned cloud-init/bootstrap and reapply through reviewed Terraform as needed; final cloud-init succeeded and Terraform reports no drift.
 - [x] Install/configure K3s, validate persistent storage across pod replacement, enable secret encryption, and configure private Traefik.
 - [x] Install the compatible ECR credential-provider binary and kubelet configuration using the instance role; a private image pull remains to be verified.
+- [ ] Publish and pull an immutable private smoke image using the restricted GitHub OIDC workflow.
 - [x] Install pinned Argo CD `v3.5.6`; the root Application manifest is prepared.
 - [x] Apply the root Application after its configured Git path is available on the target revision.
 - [x] Configure read-only Git access appropriate to the repository visibility. The public repository requires no Git credential; Argo fetched and synced it.
