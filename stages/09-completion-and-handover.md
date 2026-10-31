@@ -2,11 +2,11 @@
 
 [Stage index](README.md) | [Previous](08-reliability-and-recovery.md)
 
-Status: In progress. Stage 08 host recovery is complete. Demo/evidence, delayed cost review, and environment retirement remain; teardown is approval-gated.
+Status: In progress. The workload environment and approved backup/image data are retired. The state backend still needs a separately approved retirement plan; demo/evidence and delayed cost review also remain.
 
 ## Entry conditions
 
-Stage 08 is complete, including the controlled failed-release target miss and the approved 20m17s host rebuild. Environment retirement requires a separate reviewed plan and explicit approval.
+Stage 08 is complete, including the controlled failed-release target miss and the approved 20m17s host rebuild. The user-approved 29-resource workload destroy is complete; state-backend retirement remains a separate plan and approval.
 
 ## Goal
 
@@ -23,7 +23,8 @@ Make the completed project easy to understand, reproduce, demonstrate, and retir
 - [x] Document single-host, identity, security, and data-recovery limitations honestly.
 - [ ] Inspect source and evidence for secrets and employer/customer data.
 - [x] Confirmed the prior retention instruction: remove all project-created resources, preserving pre-existing resources; execution of the reviewed teardown remains approval-gated.
-- [ ] Destroy the environment and verify remaining resources match those decisions.
+- [x] Destroy the workload environment with the approved exact plan and verify the host, VPC, backup bucket, ECR repository, IAM roles, budget, alarm, and notifications are retired; preserve pre-existing resources.
+- [ ] Retire the versioned Terraform state backend with a separate approved data purge and bootstrap destroy plan.
 - [ ] Recheck cost reporting after its reporting delay.
 
 ## Work locations
