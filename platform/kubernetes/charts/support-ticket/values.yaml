@@ -3,8 +3,8 @@ fullnameOverride: ""
 
 image:
   repository: 507720142035.dkr.ecr.us-east-1.amazonaws.com/agtp-demo-support-ticket
-  digest: sha256:6788765547d33fe8e9c57adeced333d851725b3cbec5a573fd801664b9be7c57
-  sourceCommit: dee59eb0f5530ebe5f2b53ebbc9a513804f67312
+  digest: sha256:79083cba4c8ccfd66d438c6a86c8f221608662f4dcf2f7604783538121c44863
+  sourceCommit: 7a0cee996411675015ec132e9ff9e0538ba71915
   pullPolicy: IfNotPresent
 
 replicaCount: 1
