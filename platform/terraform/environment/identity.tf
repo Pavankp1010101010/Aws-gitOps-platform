@@ -46,6 +46,11 @@ resource "aws_iam_role_policy" "host" {
         Action    = ["s3:ListBucket"]
         Resource  = aws_s3_bucket.backups.arn
         Condition = { StringLike = { "s3:prefix" = ["postgres/*"] } }
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["sns:Publish"]
+        Resource = aws_sns_topic.host.arn
       }
     ]
   })
