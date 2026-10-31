@@ -1,1 +1,4 @@
 platform/bootstrap/bootstrap.sh text eol=lf
+platform/backup/*.sh text eol=lf
+platform/backup/*.service text eol=lf
+platform/backup/*.timer text eol=lf
