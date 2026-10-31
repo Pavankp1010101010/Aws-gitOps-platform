@@ -2,11 +2,11 @@
 
 [Stage index](README.md) | [Previous](08-reliability-and-recovery.md)
 
-Status: In progress. Recovery evidence is reconciled; demo/evidence, final cost review, and cleanup remain. Destructive actions remain approval-gated.
+Status: In progress. Stage 08 host recovery is complete. Demo/evidence, delayed cost review, and environment retirement remain; teardown is approval-gated.
 
 ## Entry conditions
 
-Stage 08 non-destructive recovery results are recorded, including the controlled failed-release behavior and its release-target miss. Host rebuild and resource retirement require separate explicit approvals.
+Stage 08 is complete, including the controlled failed-release target miss and the approved 20m17s host rebuild. Environment retirement requires a separate reviewed plan and explicit approval.
 
 ## Goal
 

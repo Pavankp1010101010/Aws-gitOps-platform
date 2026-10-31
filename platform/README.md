@@ -2,7 +2,7 @@
 
 [Back to project overview](../README.md)
 
-Status (2026-10-31): Stages 04-07 are deployed and verified on the existing single m7i-flex.large host. Stage 08 backup, isolated-restore, alert, load, and pod-recovery evidence is recorded. The controlled failed-release exercise preserved service, but the stale Argo operation required termination and a sync to current `main`; the 10-minute convergence target was missed. Host rebuild and environment retirement remain approval-gated.
+Status (2026-10-31): Stages 04-08 are deployed and verified on the rebuilt m7i-flex.large host. The approved rebuild restored the encrypted backup in 20m17s; the post-rebuild backup timer and monitoring are healthy. The failed-release exercise preserved service but required stale-operation termination and exceeded the 10-minute convergence target. Environment retirement remains approval-gated.
 
 ## Navigation
 

@@ -2,7 +2,7 @@
 
 A cost-conscious DevOps portfolio project demonstrating repeatable AWS infrastructure, controlled application delivery, monitoring, and recovery.
 
-> Current status (2026-10-31): Stages 00-07 are complete. Stage 08 non-destructive checks are recorded, including an isolated restore of 104 tickets and 3 comments, pod-recovery, load, and alert drills. During the failed-release drill, the app and database stayed healthy; the failed hook was removed after its deadline, but Argo retried until the stale operation was terminated and current `main` synced successfully at 11:54:11Z. The 10-minute release-recovery target was exceeded. Stage 08 host rebuild and Stage 09 cost review/evidence/teardown remain open and approval-gated; the single m7i-flex.large host remains live.
+> Current status (2026-10-31): Stages 00-08 are complete, with the failed-release 10-minute convergence target explicitly missed. The approved host rebuild restored the app and 104 tickets/3 comments from the off-host backup in 20m17s from the first destructive EC2 change to verified HTTP 200 readiness; Terraform reports no drift. The rebuilt host's backup timer and monitoring are healthy, and a post-rebuild backup is verified. Stage 09 demo/evidence, delayed cost review, and resource retirement remain; teardown still requires approval. The m7i-flex.large host is live.
 
 ## Start here
 
@@ -55,7 +55,7 @@ aws-gitops-platform/
     `-- tests/README.md               Platform, recovery, and load-test evidence
 ```
 
-The AWS foundation, single-node K3s cluster, Argo CD delivery, monitoring, and application are deployed. Recovery evidence includes a release-convergence target miss and a completed reconciliation after a controlled failed release; the app remained healthy, but the stale Argo operation required manual termination. Host rebuild and final environment retirement remain approval-gated.
+The AWS foundation, single-node K3s cluster, Argo CD delivery, monitoring, and application are deployed. Recovery evidence includes a release-convergence target miss and an approved host rebuild that restored the encrypted backup and verified application readiness. Final environment retirement remains approval-gated.
 
 ## Deployed platform (baseline)
 
@@ -78,7 +78,7 @@ No EKS, RDS, AWS load balancer, or NAT Gateway is planned for the baseline. This
 | Deliverable | Status |
 |---|---|
 | Documentation and navigable folder structure | Created |
-| Stage plan | Stages 00-07 complete; Stage 08 in progress; Stage 09 handover/cleanup in progress |
+| Stage plan | Stages 00-08 complete (release convergence target miss documented); Stage 09 handover/cleanup in progress |
 | Application selection | Support Ticket Tracker |
 | Application language/framework decision | Node.js 24, Express, browser HTML/CSS/JavaScript, PostgreSQL confirmed |
 | Workstation and local Git | Verified tools; published feature branch/PR #1; remote history preserved |
@@ -90,8 +90,8 @@ No EKS, RDS, AWS load balancer, or NAT Gateway is planned for the baseline. This
 | CI | Hosted tests/build/scan pass; required-check failure blocked a PR; release workflow creates digest-pinned deployment PRs |
 | GitOps delivery | Argo CD and Helm deployed; approved image update and private smoke test passed |
 | Monitoring | Prometheus/Grafana dashboards and Alertmanager/CloudWatch notifications verified |
-| Backups and recovery | Encrypted S3 backup, isolated restore, alerts, pod replacement, and load test passed; failed-release recovery preserved service but exceeded the convergence target and required manual Argo operation termination; host rebuild remains |
-| Stage 09 portfolio and cleanup | Documentation and cost review underway; destructive rebuild and teardown still require explicit approval |
+| Backups and recovery | Encrypted S3 backup, isolated restore, alerts, load, pod replacement, and approved host rebuild passed; failed-release recovery preserved service but exceeded the convergence target and required manual Argo operation termination |
+| Stage 09 portfolio and cleanup | Documentation and cost review underway; evidence/demo and final retirement remain |
 
 ## Repository organization
 

@@ -2,7 +2,7 @@
 
 [Platform overview](../README.md) | [Acceptance matrix](../../docs/08-validation-and-evidence.md)
 
-Status: controlled failure-policy fixtures, rendered Helm-chart safety checks, and smoke-helper contract tests are implemented. Stage 08 live backup, isolated-restore, load, pod-recovery, alert, and failed-release checks are recorded below; the host rebuild remains pending explicit approval.
+Status: controlled failure-policy fixtures, rendered Helm-chart safety checks, and smoke-helper contract tests are implemented. Stage 08 backup, restore, load, pod-recovery, alert, failed-release, and approved host-rebuild checks are recorded below; the 10-minute failed-release convergence target was missed.
 
 The post-merge Stage 06 verification used the deployed digest `sha256:cccccecd88c300e721dc421ddd95144f3cda31a35ce92addc0ca4c7b3400294f`. The repository smoke helper passed in the live application pod (synthetic ticket 4); Argo CD reported Synced/Healthy, and both application and PostgreSQL Services remained `ClusterIP`. See the [Stage 06 evidence](../../stages/06-end-to-end-gitops.md).
 
@@ -29,6 +29,7 @@ See [scan policy](../delivery/scan-policy.md). These fixtures do not install vul
 - Backup failure and overdue alerts fired/resolved, and the operator confirmed receipt.
 - The failed release's migration hook could not pull its nonexistent digest and did not run. The app and database stayed healthy on the known-good revision. The failed hook Job disappeared after its active deadline, but Argo retried the operation; the operator terminated the stale operation and synced current `main`. At 11:54:11Z Argo reported `Synced/Healthy` at `5e78eec81ff57056978d823257b521561044b286`; `/health/ready` returned HTTP 200, no migration Job remained, and the database contained 104 tickets and 3 comments. The measured revert convergence exceeded the 10-minute target (11m30s after merge; 14m23s after commit creation); no API outage was observed and service restoration was not needed.
 - PR #28 merged the `HookFailed` migration-hook deletion policy and Argo synced it at `7fbced8d6bf3adc1cde44d28c633d7082335c9f3`. The failed hook was removed after its active deadline, but Argo retry required operator termination and a sync to current `main`.
+- The approved Terraform host replacement was applied with the reviewed 1-add/1-change/1-destroy plan. The 11:01:53Z AES256 backup restored 104 tickets and 3 comments; `/health/ready` returned HTTP 200 at 12:27:10Z, 20m17s after the first destructive EC2 change. A post-apply Terraform plan reported no changes.
 
 ## Future checks
 
