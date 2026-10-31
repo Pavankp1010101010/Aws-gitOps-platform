@@ -34,7 +34,8 @@ Terraform 1.17.1 and AWS provider 6.71.0 are pinned. The approved local Terrafor
 From PowerShell:
 
 ```powershell
-Set-Location -LiteralPath 'C:\Users\JGVC36\Documents\Personal\Project\aws-gitops-platform'
+$repoRoot = (git rev-parse --show-toplevel)
+Set-Location -LiteralPath $repoRoot
 $tf = Join-Path (Get-Location) '.cache\tools\terraform\1.17.1\terraform.exe'
 & $tf '-chdir=platform\terraform' fmt -check -recursive
 & $tf '-chdir=platform\terraform\bootstrap' init -backend=false -input=false

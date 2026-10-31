@@ -2,7 +2,7 @@
 
 A cost-conscious DevOps portfolio project demonstrating repeatable AWS infrastructure, controlled application delivery, monitoring, and recovery.
 
-> Current status: Stages 00-04 are complete; Stage 05 is in progress on the existing m7i-flex.large host. The 29 Stage 04 resources have no Terraform drift. SSM Run Command succeeded, the security group has no ingress, and the alarm is OK. SNS policy, budget, ECR, and backup safeguards are verified. The corrected SNS subscription is confirmed; one stale unconfirmed request remains from the earlier address typo. Cost monitoring and cleanup remain due by the agreed deadline.
+> Current status (2026-10-31): Stages 00-07 are complete. Stage 08 recovery checks are substantially verified: a fresh encrypted off-host backup restored 104 tickets and 3 comments in isolation, PostgreSQL pod replacement preserved those records, application readiness returned HTTP 200, and the load and alert drills passed. A failed-release drill exposed slow Argo convergence; its HookFailed cleanup fix is merged and synced, with a controlled retest pending. Stage 09 evidence, cost review, and final gated teardown are in progress. The single m7i-flex.large host remains live; its replacement and retirement are not authorized.
 
 ## Start here
 
@@ -16,9 +16,9 @@ A cost-conscious DevOps portfolio project demonstrating repeatable AWS infrastru
 
 ```text
 aws-gitops-platform/
-|-- README.md                         Entry point and navigation
-|-- .github/workflows/                Published, verified application CI workflow
-|-- stages/                           Ordered execution checklists and progress tracker
+|-- README.md                         Project entry point, status, and navigation
+|-- .github/workflows/                Application CI, release, and credential-refresh workflows
+|-- stages/                           Stage 00-09 checklists and evidence tracker
 |-- docs/
 |   |-- 01-project-brief.md            Problem, goals, scope, limitations
 |   |-- 02-tool-inventory.md           Tools, responsibilities, installation policy
@@ -26,15 +26,13 @@ aws-gitops-platform/
 |   |-- 04-implementation-roadmap.md   Ordered milestones and completion criteria
 |   |-- 05-security-and-access.md      Identity, secrets, network access
 |   |-- 06-monitoring-and-alerting.md  Prometheus, Grafana, alerts
-|   |-- 07-cost-and-cleanup.md         Billable resources and teardown checklist
-|   |-- 08-validation-and-evidence.md  Tests, measurements, portfolio evidence
+|   |-- 07-cost-and-cleanup.md         Billable resources, observed costs, and gated teardown
+|   |-- 08-validation-and-evidence.md  Acceptance checks and measured results
 |   |-- 09-workstation-and-isolation.md Confirmed setup, checks, safety boundaries
 |   |-- 10-stage02-results.md          Actual local application checks and limits
 |   |-- 11-stage03-results.md          Container/scan results and completion blockers
 |   |-- 12-stage04-local-results.md    Terraform validation, tests, and AWS approval gates
-|   `-- runbooks/
-|       |-- release-recovery.md       Failed application release recovery
-|       `-- database-and-host-recovery.md
+|   `-- runbooks/                      Release, database, and host recovery procedures
 |-- application/
 |   |-- README.md                     Startup, API, tests, troubleshooting
 |   |-- src/                          Application API, database access, server
@@ -49,18 +47,19 @@ aws-gitops-platform/
 `-- platform/
     |-- README.md                     Platform ownership and layout
     |-- terraform/                    Bootstrap/environment roots, locks, mock tests, guide
-    |-- bootstrap/README.md           Planned host and cluster initialization
-    |-- delivery/README.md            Planned CI workflows and GitOps resources
-    |-- kubernetes/README.md          Planned Helm and Argo CD configuration
-    |-- monitoring/README.md          Planned dashboards, rules, notifications
-    `-- tests/README.md               Planned platform checks and load tests
+    |-- bootstrap/README.md           Pinned host, K3s, and Argo CD bootstrap
+    |-- delivery/README.md            CI and immutable-image GitOps release flow
+    |-- kubernetes/README.md          Helm charts and Argo CD desired state
+    |-- monitoring/README.md          Prometheus, Grafana, and verified alerts
+    |-- backup/README.md              Host-side PostgreSQL backups and restore evidence
+    `-- tests/README.md               Platform, recovery, and load-test evidence
 ```
 
-Application/container code and hosted CI are implemented. AWS Terraform configuration is locally validated but unapplied. Kubernetes platform deployment remains planned.
+The AWS foundation, single-node K3s cluster, Argo CD delivery, monitoring, and application are deployed. Recovery evidence is recorded, including an explicit release-convergence target miss; a hook-cleanup fix and repeat test are pending. Host rebuild and final environment retirement remain approval-gated.
 
-## Intended platform
+## Deployed platform (baseline)
 
-| Area | Planned choice |
+| Area | Implemented choice |
 |---|---|
 | AWS infrastructure | VPC, public subnet, EC2, IAM, ECR, S3 |
 | Infrastructure automation | Terraform and cloud-init |
@@ -79,23 +78,24 @@ No EKS, RDS, AWS load balancer, or NAT Gateway is planned for the baseline. This
 | Deliverable | Status |
 |---|---|
 | Documentation and navigable folder structure | Created |
-| Stage plan | Stages 00-04 complete; Stage 05 in progress |
+| Stage plan | Stages 00-07 complete; Stage 08 in progress; Stage 09 handover/cleanup in progress |
 | Application selection | Support Ticket Tracker |
 | Application language/framework decision | Node.js 24, Express, browser HTML/CSS/JavaScript, PostgreSQL confirmed |
 | Workstation and local Git | Verified tools; published feature branch/PR #1; remote history preserved |
 | Application code and automated tests | Implemented; 13 checks passed and browser workflow verified |
 | Local development environment | App/database containers verified and stopped; volume and ignored .env retained |
 | Application container and image scan | Non-root Alpine build and patched HIGH/CRITICAL scan pass locally and in CI |
-| Terraform and remote-state bootstrap | Bootstrap and environment applied; 29 resources verified with no drift; six mocked tests pass |
-| K3s bootstrap and registry authentication | Not implemented |
-| CI | Hosted tests/build/scan pass; deliberate failure blocked PR and recovery passed |
-| GitOps and monitoring deployment | Not implemented |
-| Recovery drills and measured results | Not performed |
-| AWS deployment | Not performed |
+| Terraform and remote-state bootstrap | Applied; 29 resources verified with no drift; six mocked tests pass |
+| K3s bootstrap and registry authentication | Single-node cluster deployed; private ECR credential-provider refresh verified with the documented accelerated test |
+| CI | Hosted tests/build/scan pass; required-check failure blocked a PR; release workflow creates digest-pinned deployment PRs |
+| GitOps delivery | Argo CD and Helm deployed; approved image update and private smoke test passed |
+| Monitoring | Prometheus/Grafana dashboards and Alertmanager/CloudWatch notifications verified |
+| Backups and recovery | Encrypted S3 backup, isolated restore, alerts, pod replacement, and load test passed; failed-hook fix/retest and host rebuild remain |
+| Stage 09 portfolio and cleanup | Documentation and cost review underway; destructive rebuild and teardown still require explicit approval |
 
 ## Repository organization
 
-This directory is a monorepo on local feature branch `stage04/aws-foundation`, based on merged `origin/main`. [PR #1](https://github.com/Pavankp1010101010/Aws-gitOps-platform/pull/1) merged the reviewed application, container CI, and project guides. Stage 04 changes have not been committed or uploaded.
+This directory is a monorepo on `main`; the application, Terraform, Kubernetes, monitoring, and recovery implementation is versioned in the public repository. Pull requests are used for reviewed changes.
 
 Keep application implementation in [application](application/README.md) and platform implementation in [platform](platform/README.md). Application-local development files belong with the application; AWS/Kubernetes deployment configuration belongs with the platform.
 
@@ -110,8 +110,9 @@ See [workstation decisions and isolation](docs/09-workstation-and-isolation.md) 
 - One EC2 host is a single point of failure.
 - Kubernetes pod replacement does not provide host-level high availability.
 - In-cluster monitoring cannot reliably report the loss of its own host.
-- Git stores desired configuration, not database contents.
-- Runbooks are planned procedures, not evidence that recovery has succeeded.
-- No command in this documentation should be treated as an implemented deployment script.
+- Git stores desired configuration, not database contents. The off-host backup is the verified recovery copy; the local persistent volume does not survive every host-replacement scenario.
+- One EC2 host is a single point of failure; successful pod recovery is not host-level high availability.
+- The repository documents tests and operational procedures; only checks explicitly marked passed have live evidence.
+- The active environment incurs ongoing charges. The seven-day backup lifecycle covers only `postgres/automated/`; confirm retained-resource and teardown decisions before removing it.
 
 Do not copy employer code, data, credentials, or configuration into this portfolio.

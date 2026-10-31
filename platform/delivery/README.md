@@ -16,7 +16,7 @@ Status: application CI and the Stage 06 release-to-GitOps flow are verified. Dep
 
 See the [scan policy](scan-policy.md) and [Stage 03 results](../../docs/11-stage03-results.md). The patched image passes the local and hosted HIGH/CRITICAL gate. An actual temporary failing application test failed the required hosted job and blocked the PR; removing it restored success.
 
-The user selected `Application tests and image scan` as required. Public metadata verifies GitHub Actions as the source and enforcement for everyone. Exact other classic-protection settings remain user-confirmed; no bypass/merge was attempted. PR #1 is open and unmerged.
+The user selected `Application tests and image scan` as required. Public metadata verifies GitHub Actions as the source and enforcement for everyone. PR #1 is merged; the deliberate hosted-check failure and recovery are documented in the [Stage 03 results](../../docs/11-stage03-results.md). Exact other classic-protection settings remain user-confirmed.
 
 ## Application pull requests
 

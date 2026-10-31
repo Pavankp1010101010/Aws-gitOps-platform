@@ -2,7 +2,7 @@
 
 [Back to project overview](../README.md)
 
-Status: application CI and failure-policy fixtures are implemented; Stage 04 AWS foundation is deployed and verified. Stage 05 K3s/Argo CD bootstrap is in progress on the existing host. Kubernetes/bootstrap configuration is being made reproducible; monitoring remains planned.
+Status (2026-10-31): Stages 04-07 are deployed and verified on the existing single m7i-flex.large host. Stage 08 backup, isolated-restore, alert, load, and pod-recovery evidence is recorded. The HookFailed cleanup fix is merged and synced; its controlled retest, host rebuild, and environment retirement remain approval-gated.
 
 ## Navigation
 

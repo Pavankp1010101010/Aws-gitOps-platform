@@ -2,11 +2,11 @@
 
 [Stage index](README.md) | [Previous](08-reliability-and-recovery.md)
 
-Status: Not started.
+Status: In progress. Documentation reconciliation, recovery follow-up, and cost review are underway; destructive actions remain approval-gated.
 
 ## Entry conditions
 
-Stage 08 results are recorded; no required acceptance failure is unresolved.
+Stage 08 results are recorded. The failed-hook cleanup fix is merged and synced, but repeat recovery verification is pending; host rebuild and resource retirement require separate explicit approvals.
 
 ## Goal
 
@@ -14,15 +14,15 @@ Make the completed project easy to understand, reproduce, demonstrate, and retir
 
 ## Work checklist
 
-- [ ] Reconcile documentation with actual versions, resource names, behavior, and ownership.
+- [x] Reconcile the project overview and platform/bootstrap status with the deployed architecture and completed stages.
 - [ ] Provide tested setup, configuration, release, troubleshooting, and teardown instructions.
 - [ ] Complete the acceptance matrix and actual performance/recovery results.
 - [ ] Capture a short demo: source change, CI, deployment PR, Argo CD, dashboards, recovery.
 - [ ] Preserve redacted architecture, pipeline, alert, and recovery evidence.
 - [ ] Record actual observed costs and reporting-period limitations.
-- [ ] Document single-host, identity, security, and data-recovery limitations honestly.
+- [x] Document single-host, identity, security, and data-recovery limitations honestly.
 - [ ] Inspect source and evidence for secrets and employer/customer data.
-- [ ] Review teardown plan and explicitly decide what data/resources to retain.
+- [x] Confirmed the prior retention instruction: remove all project-created resources, preserving pre-existing resources; execution of the reviewed teardown remains approval-gated.
 - [ ] Destroy the environment and verify remaining resources match those decisions.
 - [ ] Recheck cost reporting after its reporting delay.
 

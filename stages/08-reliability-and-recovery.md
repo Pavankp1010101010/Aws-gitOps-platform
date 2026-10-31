@@ -19,7 +19,8 @@ Prove platform behavior during failures, rather than assuming it from configurat
 - [x] Run controlled k6 traffic with the documented request mix and duration.
 - [x] Run application pod replacement and failed-release exercises.
 - [x] Revert the GitOps release and verify actual service health; record that Argo convergence exceeded the 10-minute operational recovery window, although the app remained healthy throughout.
-- [x] Restore an off-host backup into an isolated database and verify tickets/comments.
+- [x] Restore both a baseline and fresh off-host backup into isolated databases and verify tickets/comments.
+- [x] Replace the PostgreSQL pod and confirm ticket/comment persistence and application readiness.
 - [ ] Perform an approved host rebuild using Terraform/bootstrap, secure secret initialization, and data restoration.
 - [x] Update recovery runbooks from actual findings and timings.
 
@@ -30,12 +31,12 @@ Checks/load scripts in [platform/tests](../platform/tests/README.md); host backu
 ## Exit checks
 
 - [x] K8S-01 and CD-02 have measured outcomes; the app remained healthy throughout, while revert-to-Argo-success took 11m30s after merge (14m23s after commit creation) and exceeded the 10-minute operational recovery window.
-- [x] DR-01 verifies data and reports the backup recovery point; the latest backup was 90.3 minutes old at the 10:35:25Z check (no real incident occurred).
+- [x] DR-01 verifies data and reports the backup recovery point; at 11:09:47Z the latest verified backup was 7m54s old and restored 104 tickets/3 comments (no real incident occurred).
 - [ ] DR-02 and AWS-01 prove host rebuild without undocumented console changes.
 - [x] Backup failure/overdue notifications were received.
 - [x] Load results report request rate, duration, p95 latency, errors, and host sizing against previously selected targets.
 - [x] Schema compatibility and single-host downtime limitations are documented.
-- [ ] The failed migration hook and manual recovery are documented, but the operational recovery window was missed and needs follow-up.
+- [ ] HookFailed cleanup fix is merged and synced; repeat the controlled recovery test. The first Argo convergence exceeded the 10-minute operational recovery window.
 
 Do not overwrite the active database for a drill. Do not destroy the only data copy. Do not claim HPA, high availability, or zero downtime unless separately implemented and proven.
 
