@@ -29,7 +29,7 @@ export const options = {
   thresholds: {
     'http_req_duration{phase:load}': ['p(95)<500'],
     'http_req_failed{phase:load}': ['rate<0.01'],
-    'http_reqs{phase:load}': ['count==1500'],
+    'http_reqs{phase:load}': ['count>=1500'],
     dropped_iterations: ['count==0'],
     iterations: ['count>=1500'],
   },

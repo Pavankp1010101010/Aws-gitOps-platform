@@ -43,7 +43,7 @@ Set a target before testing. Do not invent baseline values.
 | Load behavior | p95 latency and errors at stated request rate and duration | p95 <= 500 ms; errors < 1%; 5 requests/second for 5 minutes | Not measured |
 | Host rebuild time | Rebuild start to restored verified application | <= 60 minutes | Not measured |
 
-These initial targets were approved in Stage 01; they are not achieved results. Use 100 synthetic tickets and an even list/detail request mix for the initial load test (1,500 scheduled requests); report achieved request count, dropped iterations, and failures as well as latency. Confirm dataset/resource sizing and any explicit target revision before testing.
+These initial targets were approved in Stage 01; they are not achieved results. Use 100 synthetic tickets and an even list/detail request mix for the initial load test (at least 1,500 measured load requests); report achieved request count, dropped iterations, and failures as well as latency. A constant-arrival-rate run may include the start-boundary iteration, so a count above 1,500 is valid. Confirm dataset/resource sizing and any explicit target revision before testing.
 
 Daily scheduling alone does not guarantee a 24-hour recovery point: monitor backup completion/freshness and account for job duration. Deployment duration remains informational until an explicit target is agreed.
 
