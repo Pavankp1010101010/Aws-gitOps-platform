@@ -2,7 +2,7 @@
 
 A cost-conscious DevOps portfolio project demonstrating repeatable AWS infrastructure, controlled application delivery, monitoring, and recovery.
 
-> Current status (2026-10-31): Stages 00-08 are complete, with the failed-release 10-minute convergence target explicitly missed. The approved host rebuild restored the app and 104 tickets/3 comments from the off-host backup in 20m17s from the first destructive EC2 change to verified HTTP 200 readiness; Terraform reports no drift. The rebuilt host's backup timer and monitoring are healthy, and a post-rebuild backup is verified. Stage 09 demo/evidence, delayed cost review, and resource retirement remain; teardown still requires approval. The m7i-flex.large host is live.
+> Current status (2026-10-31): Stages 00-08 are complete, with the failed-release 10-minute convergence target explicitly missed. The approved host rebuild restored the app and 104 tickets/3 comments from the off-host backup in 20m17s. On 2026-10-31 the user-approved retirement removed the 29-resource workload environment; the approved backup versions and ECR images were purged, and the host is terminated. The separate Terraform state backend remains pending its reviewed retirement plan. Demo/evidence and delayed cost review also remain.
 
 ## Start here
 
@@ -55,7 +55,7 @@ aws-gitops-platform/
     `-- tests/README.md               Platform, recovery, and load-test evidence
 ```
 
-The AWS foundation, single-node K3s cluster, Argo CD delivery, monitoring, and application are deployed. Recovery evidence includes a release-convergence target miss and an approved host rebuild that restored the encrypted backup and verified application readiness. Final environment retirement remains approval-gated.
+The AWS foundation, single-node K3s cluster, Argo CD delivery, monitoring, and application were deployed and verified, then retired using an approved Terraform plan. Recovery evidence includes a release-convergence target miss and an approved host rebuild that restored the encrypted backup and verified application readiness. The state backend retirement and delayed cost review remain open.
 
 ## Deployed platform (baseline)
 
@@ -78,20 +78,20 @@ No EKS, RDS, AWS load balancer, or NAT Gateway is planned for the baseline. This
 | Deliverable | Status |
 |---|---|
 | Documentation and navigable folder structure | Created |
-| Stage plan | Stages 00-08 complete (release convergence target miss documented); Stage 09 handover/cleanup in progress |
+| Stage plan | Stages 00-08 complete (release convergence target miss documented); Stage 09 in progress (workload environment retired; state backend/cost follow-up pending) |
 | Application selection | Support Ticket Tracker |
 | Application language/framework decision | Node.js 24, Express, browser HTML/CSS/JavaScript, PostgreSQL confirmed |
 | Workstation and local Git | Verified tools; published feature branch/PR #1; remote history preserved |
 | Application code and automated tests | Implemented; 13 checks passed and browser workflow verified |
 | Local development environment | App/database containers verified and stopped; volume and ignored .env retained |
 | Application container and image scan | Non-root Alpine build and patched HIGH/CRITICAL scan pass locally and in CI |
-| Terraform and remote-state bootstrap | Applied; 29 resources verified with no drift; six mocked tests pass |
+| Terraform and remote-state bootstrap | Workload environment retired with approved 29-resource plan; separate five-resource state backend retirement remains |
 | K3s bootstrap and registry authentication | Single-node cluster deployed; private ECR credential-provider refresh verified with the documented accelerated test |
 | CI | Hosted tests/build/scan pass; required-check failure blocked a PR; release workflow creates digest-pinned deployment PRs |
 | GitOps delivery | Argo CD and Helm deployed; approved image update and private smoke test passed |
 | Monitoring | Prometheus/Grafana dashboards and Alertmanager/CloudWatch notifications verified |
 | Backups and recovery | Encrypted S3 backup, isolated restore, alerts, load, pod replacement, and approved host rebuild passed; failed-release recovery preserved service but exceeded the convergence target and required manual Argo operation termination |
-| Stage 09 portfolio and cleanup | Documentation and cost review underway; evidence/demo and final retirement remain |
+| Stage 09 portfolio and cleanup | Workload resources retired; backend retirement, demo/evidence, and delayed cost review remain |
 
 ## Repository organization
 
