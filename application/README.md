@@ -120,7 +120,7 @@ Changing the password in `.env` does not update an already initialized PostgreSQ
 
 The support-ticket application and PostgreSQL are deployed in the `support-ticket` namespace through Argo CD. Both Services are `ClusterIP`; no public ingress or load balancer is configured. Do not expose this unauthenticated demo to the public internet.
 
-After an application change is merged to `main`, the release workflow builds and scans the image, publishes it to ECR, and proposes its immutable digest in a GitOps pull request. Argo CD deploys that digest only after the GitOps change is reviewed and merged. The application database password is provisioned out of band and is not stored in Git.
+After a successful `Application CI` run for a push to `main`, the release workflow builds and scans the tested image, publishes it to ECR, and proposes its immutable digest in a GitOps pull request. CI does not apply application resources; Argo CD deploys the digest only after the GitOps change is reviewed and merged. The application database password is provisioned out of band and is not stored in Git.
 
 For private API smoke checks, use an SSM-mediated loopback port-forward as described in the [platform test guide](../platform/tests/README.md).
 
