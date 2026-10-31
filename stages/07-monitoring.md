@@ -2,7 +2,7 @@
 
 [Stage index](README.md) | [Previous](06-end-to-end-gitops.md) | [Next](08-reliability-and-recovery.md)
 
-Status: In progress. GitOps configuration, dashboards, alert rules, and the authenticated SNS bridge are implemented; local validation passes, while CI and deployment are pending.
+Status: In progress. The monitoring stack and authenticated SNS bridge are partially deployed. Grafana and the Prometheus Operator are running; Prometheus is starting, while Alertmanager configuration and end-to-end acceptance remain incomplete.
 
 ## Entry conditions
 
@@ -46,6 +46,8 @@ Review alert usefulness and capacity before Stage 08. Do not equate monitoring o
 
 The pinned `kube-prometheus-stack` chart and monitoring manifests are under `platform/monitoring`. Grafana and Prometheus remain private. Alertmanager calls a host-side bridge bound only to the K3s bridge address; the bridge publishes to the existing SNS topic using a topic-scoped EC2-role permission. The bridge token and Grafana password are generated on the host and stored in Kubernetes Secrets out of band.
 
-No monitoring resources or Terraform changes have been applied yet. Complete CI/local validation, merge the implementation, then apply the narrow SNS permission and install the bridge through SSM before syncing Argo CD. Do not mark the notification acceptance complete until the operator confirms both controlled messages arrived.
+The scoped SNS permission and bridge are deployed; the bridge health endpoint responds successfully. Grafana and the operator are running, and Prometheus has created its StatefulSet and persistent volume. Alertmanager exposed a chart-default Watchdog route that referenced the `null` receiver after the custom receiver list replaced the chart default; the monitoring values and CI guard now keep every route receiver defined. The generated webhook CA bundle has also been applied to the admission configuration so the operator endpoint is trusted.
+
+Do not mark this stage complete until Argo reports the monitoring Application healthy, known application traffic appears in Prometheus and Grafana, controlled firing and resolved notifications are received, and actual host resource use is recorded. Keep the existing host cleanup deadline in view.
 
 Local Prometheus v3.5.0 `promtool` tests pass for missing application targets and the low-disk alert's timing, using synthetic inputs without changing the host filesystem.
