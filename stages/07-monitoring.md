@@ -2,7 +2,7 @@
 
 [Stage index](README.md) | [Previous](06-end-to-end-gitops.md) | [Next](08-reliability-and-recovery.md)
 
-Status: In progress. The monitoring stack is healthy; Alertmanager and CloudWatch test actions were accepted by SNS. End-to-end recipient confirmation and sustained-capacity evidence remain outstanding.
+Status: Acceptance checks pass; installer hardening and final evidence are in the pushed branch awaiting PR merge. Sustained-load capacity was not measured.
 
 ## Entry conditions
 
@@ -29,14 +29,14 @@ Make failures visible and verify that notifications reach an operator.
 
 ## Exit checks
 
-- [x] Known request traffic appears as rate, errors, and p95 latency.
-- [ ] Controlled failure produces a received firing and resolved notification.
+- [x] Known request traffic appears as rate, errors, and p95 latency in Prometheus; Grafana's Prometheus data-source query returns positive application request-rate data.
+- [x] Controlled Alertmanager firing/resolved and CloudWatch ALARM/OK notifications were received by the operator.
 - [x] Safe rule tests cover low-space alerts without filling a live disk.
 - [x] K3s compatibility issues do not leave irrelevant alerts permanently firing.
-- [ ] External host notification path is tested and its coverage limitations documented.
-- [ ] Actual monitoring resource use fits the selected host.
+- [x] External host notification path is tested and its coverage limitations documented; it checks host status, not independent application availability.
+- [x] Point-in-time node, pod, and disk resource use is recorded; sustained-load capacity is explicitly not measured.
 
-Record MON-01 and MON-02 results, notification timings, and redacted dashboards.
+Record MON-01 and MON-02 results and redacted dashboards; no delivery-latency measurement is claimed.
 
 ## Cost and approval gate
 
@@ -52,11 +52,11 @@ The scoped SNS permission and bridge are deployed; the bridge health endpoint re
 
 - Argo monitoring Application: `Synced / Healthy` at merged revision `8c35ee0`; Prometheus, Alertmanager, Grafana, operator, kube-state-metrics, and node exporter pods are ready.
 - Prometheus reports the support-ticket application target `up=1`. Eight controlled `GET /health/live` requests returned 2xx; the scraped request counter reached 397, the observed two-minute request rate was about 0.156 requests/second, and the five-minute p95 for that route was about 4.75 ms.
-- After reconciling its persisted admin password with the out-of-band Secret, the authenticated Grafana API listed the Support Ticket Application and Kubernetes Host dashboards.
+- After reconciling its persisted admin password with the out-of-band Secret, the authenticated Grafana API listed the Support Ticket Application and Kubernetes Host dashboards. A Grafana Prometheus data-source query returned positive support-ticket request-rate data.
 - A `kubectl top` snapshot showed the node at 132 millicores (6%) and 3,907 MiB memory (50%). Monitoring pods used approximately 854 MiB combined: Grafana 394 MiB, Prometheus 389 MiB, Alertmanager 24 MiB, operator 21 MiB, kube-state-metrics 17 MiB, and node exporter 9 MiB.
 - Root volume usage was 8.8 GiB of 29 GiB (32%). These are point-in-time measurements, not sustained peak capacity results.
-- A controlled Alertmanager firing/resolved pair was accepted by SNS. A separate CloudWatch `OK -> ALARM -> OK` test recorded successful SNS actions for both transitions. One SNS email subscription is confirmed and another is pending; operator confirmation of receipt is still required.
+- A controlled Alertmanager firing/resolved pair was accepted by SNS. A separate CloudWatch `OK -> ALARM -> OK` test recorded successful SNS actions for both transitions. The operator confirmed receipt of both test pairs. One SNS email subscription is confirmed and another is pending.
 
-Do not mark this stage complete until Argo reports the monitoring Application healthy, known application traffic appears in Prometheus and Grafana, controlled firing and resolved notifications are received, and actual host resource use is recorded. Keep the existing host cleanup deadline in view.
+Argo health, application metric queries, dashboard access, both notification paths, and point-in-time resource recording are verified. Sustained-load capacity and delivery latency are not claimed. Complete this stage after merging the pushed installer hardening and evidence update; keep the existing host cleanup deadline in view.
 
 Local Prometheus v3.5.0 `promtool` tests pass for missing application targets and the low-disk alert's timing, using synthetic inputs without changing the host filesystem.
