@@ -170,6 +170,18 @@ jobs:
             echo "::error::The deployment PR for this source commit was closed without merging."
             exit 1
           fi
+          pr_title="Deploy support ticket application ${short_sha}"
+          pr_body="Automated deployment update for tested source commit \`${SOURCE_SHA}\` and immutable image digest \`${IMAGE_DIGEST}\`. Application tests and the HIGH/CRITICAL image scan passed before publication. Review the rendered Helm change before merging."
+          create_deployment_pr() {
+            if ! gh pr create \
+              --base main \
+              --head "$branch" \
+              --title "$pr_title" \
+              --body "$pr_body"; then
+              echo "::error::GitHub could not create the deployment PR. Enable Actions to create pull requests in repository Settings > Actions > General > Workflow permissions."
+              return 1
+            fi
+          }
 
           python3 platform/tests/update-image-digest.py \
             platform/kubernetes/charts/support-ticket/values.yaml \
@@ -177,13 +189,19 @@ jobs:
 
           if git diff --quiet -- platform/kubernetes/charts/support-ticket/values.yaml; then
             echo "::notice::The deployment PR already contains this image digest."
-            if [[ "$pr_state" != "OPEN" ]]; then
-              echo "::error::The image digest is unchanged but no open deployment PR exists."
-              exit 1
+            if [[ "$pr_state" == "OPEN" ]]; then
+              gh workflow run application-ci.yml --ref "$branch"
+              echo "created=false" >> "$GITHUB_OUTPUT"
+              exit 0
             fi
-            gh workflow run application-ci.yml --ref "$branch"
-            echo "created=false" >> "$GITHUB_OUTPUT"
-            exit 0
+            if [[ -z "$pr_state" ]]; then
+              create_deployment_pr
+              gh workflow run application-ci.yml --ref "$branch"
+              echo "created=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "::error::Unexpected deployment PR state: ${pr_state}."
+            exit 1
           fi
 
           git config user.name "github-actions[bot]"
@@ -198,13 +216,10 @@ jobs:
               --title "Deploy support ticket application ${short_sha}" \
               --body "Automated deployment update for tested source commit \`${SOURCE_SHA}\` and immutable image digest \`${IMAGE_DIGEST}\`. Application tests and the HIGH/CRITICAL image scan passed before publication. Review the rendered Helm change before merging."
           elif [[ -z "$pr_state" ]]; then
-            gh pr create \
-              --base main \
-              --head "$branch" \
-              --title "Deploy support ticket application ${short_sha}" \
-              --body "Automated deployment update for tested source commit \`${SOURCE_SHA}\` and immutable image digest \`${IMAGE_DIGEST}\`. Application tests and the HIGH/CRITICAL image scan passed before publication. Review the rendered Helm change before merging."
+            create_deployment_pr
           else
-            echo "::error::The deployment PR is not open; refusing to update a closed PR."
+            echo "::error::Unexpected deployment PR state after updating the branch: ${pr_state}."
+            echo "::error::If no PR exists, enable Actions to create pull requests in repository Settings > Actions > General > Workflow permissions."
             exit 1
           fi
           gh workflow run application-ci.yml --ref "$branch"

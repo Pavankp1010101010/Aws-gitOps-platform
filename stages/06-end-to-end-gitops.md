@@ -2,7 +2,7 @@
 
 [Stage index](README.md) | [Previous](05-k3s-and-argocd.md) | [Next](07-monitoring.md)
 
-Status: In progress (2026-10-31). Argo CD deployed the merged chart. The private API smoke and application-pod persistence checks passed; the main-branch image publication and digest-PR path remains unverified.
+Status: In progress (2026-10-31). Argo CD deployed the chart, and private API smoke plus application-pod persistence checks passed. The main-branch workflow successfully assumed AWS credentials, built/scanned/published the image, and pushed its digest branch; creating the GitOps PR is blocked until repository Actions PR-creation permission is enabled.
 
 ## Entry conditions
 
@@ -15,7 +15,7 @@ Connect reviewed application changes to a working Kubernetes release without com
 ## Work checklist
 
 - [x] Implement trusted-main image publication after passing application CI, including scanning and restricted OIDC.
-- [x] Implement digest-pinned GitOps update PRs and trace the image to its source commit.
+- [x] Implement digest-pinned GitOps update PR creation and trace the image to its source commit; actual PR creation awaits repository workflow permission.
 - [x] Implement Helm configuration for the application, internal PostgreSQL, storage, probes, and resources (no public ingress).
 - [x] Provision the database Secret out of band without rendering or committing its value.
 - [x] Implement an Argo Sync-wave migration Job after PostgreSQL is healthy and before the application rollout, using the checksum-verified migration runner.

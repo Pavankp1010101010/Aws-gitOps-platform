@@ -122,6 +122,8 @@ The support-ticket application and PostgreSQL are deployed in the `support-ticke
 
 After a successful `Application CI` run for a push to `main`, the release workflow builds and scans the tested image, publishes it to ECR, and proposes its immutable digest in a GitOps pull request. CI does not apply application resources; Argo CD deploys the digest only after the GitOps change is reviewed and merged. The application database password is provisioned out of band and is not stored in Git.
 
+The repository must allow GitHub Actions to create pull requests under **Settings > Actions > General > Workflow permissions**. If an image-release run pushes its `deploy/application-*` branch but cannot create the PR, enable that setting and rerun Application CI for the source commit to retry PR creation.
+
 For private API smoke checks, use an SSM-mediated loopback port-forward as described in the [platform test guide](../platform/tests/README.md).
 
 ## API
