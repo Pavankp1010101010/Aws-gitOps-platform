@@ -4,6 +4,8 @@
 
 Status: controlled failure-policy fixtures, rendered Helm-chart safety checks, and smoke-helper contract tests are implemented. The live private API smoke and app-pod persistence check passed; remaining platform/load checks are pending.
 
+The post-merge Stage 06 verification used the deployed digest `sha256:cccccecd88c300e721dc421ddd95144f3cda31a35ce92addc0ca4c7b3400294f`. The repository smoke helper passed in the live application pod (synthetic ticket 4); Argo CD reported Synced/Healthy, and both application and PostgreSQL Services remained `ClusterIP`. See the [Stage 06 evidence](../../stages/06-end-to-end-gitops.md).
+
 ## Implemented fixtures
 
 - `fixtures/intentional-failure.mjs`: explicit runner-failure test; expected exit 1. Do not include it in the passing application suite.
