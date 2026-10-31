@@ -6,7 +6,7 @@ Status: In progress. Documentation reconciliation, recovery follow-up, and cost 
 
 ## Entry conditions
 
-Stage 08 results are recorded. The failed-hook cleanup fix and repeat recovery verification are pending; host rebuild and resource retirement require separate explicit approvals.
+Stage 08 results are recorded. The failed-hook cleanup fix is merged and synced, but repeat recovery verification is pending; host rebuild and resource retirement require separate explicit approvals.
 
 ## Goal
 

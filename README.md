@@ -2,7 +2,7 @@
 
 A cost-conscious DevOps portfolio project demonstrating repeatable AWS infrastructure, controlled application delivery, monitoring, and recovery.
 
-> Current status (2026-10-31): Stages 00-07 are complete. Stage 08 recovery checks are substantially verified: a fresh encrypted off-host backup restored 104 tickets and 3 comments in isolation, PostgreSQL pod replacement preserved those records, application readiness returned HTTP 200, and the load and alert drills passed. A failed-release drill exposed slow Argo convergence; a failed-hook cleanup fix is awaiting merge and a repeat recovery check. Stage 09 evidence, cost review, and final gated teardown are in progress. The single m7i-flex.large host remains live; its replacement and retirement are not authorized.
+> Current status (2026-10-31): Stages 00-07 are complete. Stage 08 recovery checks are substantially verified: a fresh encrypted off-host backup restored 104 tickets and 3 comments in isolation, PostgreSQL pod replacement preserved those records, application readiness returned HTTP 200, and the load and alert drills passed. A failed-release drill exposed slow Argo convergence; its HookFailed cleanup fix is merged and synced, with a controlled retest pending. Stage 09 evidence, cost review, and final gated teardown are in progress. The single m7i-flex.large host remains live; its replacement and retirement are not authorized.
 
 ## Start here
 

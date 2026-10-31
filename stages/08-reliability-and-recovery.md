@@ -36,7 +36,7 @@ Checks/load scripts in [platform/tests](../platform/tests/README.md); host backu
 - [x] Backup failure/overdue notifications were received.
 - [x] Load results report request rate, duration, p95 latency, errors, and host sizing against previously selected targets.
 - [x] Schema compatibility and single-host downtime limitations are documented.
-- [ ] Failed-hook cleanup fix awaits merge and a repeat controlled recovery test; the first Argo convergence exceeded the 10-minute operational recovery window.
+- [ ] HookFailed cleanup fix is merged and synced; repeat the controlled recovery test. The first Argo convergence exceeded the 10-minute operational recovery window.
 
 Do not overwrite the active database for a drill. Do not destroy the only data copy. Do not claim HPA, high availability, or zero downtime unless separately implemented and proven.
 

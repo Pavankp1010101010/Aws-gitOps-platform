@@ -44,6 +44,10 @@ The test revision referenced a nonexistent image digest. The migration hook pod 
 
 For a future stuck operation, first confirm the current desired revision and image digest, then use the supported Argo CD `app terminate-op` command rather than directly patching the Application operation field. Inspect the migration Job and pod before removing only that failed hook; never delete or restart the application database as part of this cleanup. Re-sync the current branch and verify the Argo operation, application readiness, and database state.
 
+PR #28 adds the Argo CD `HookFailed` delete policy to the migration Job and is
+merged and synced at `7fbced8d6bf3adc1cde44d28c633d7082335c9f3`. Its automatic
+cleanup behavior has not yet been revalidated with a controlled failed release.
+
 ## Host rebuild
 
 1. Determine whether the original host/data can be recovered without replacement.

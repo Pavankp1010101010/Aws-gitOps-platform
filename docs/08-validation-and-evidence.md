@@ -22,7 +22,7 @@ Stage 01 workstation and isolated container checks are recorded separately in th
 | K8S-01 | Pod recovery | Deleted application pod is replaced and becomes ready | Passed: service recovery in 6.79 seconds |
 | K8S-02 | Registry authentication | Fresh private-image pulls work after original ECR token lifetime | Accelerated cache-reset pull passed; behavior after the original token's full 12-hour expiration was not directly tested |
 | CD-01 | Approved release | Approved Git change reaches the cluster and smoke test passes | Passed in Stage 06 |
-| CD-02 | Failed release recovery | Git revert restores known-good behavior | Functionally passed: the app stayed on the known-good digest and the reverted revision synced; Argo convergence exceeded the 10-minute operational recovery window. Failed-hook cleanup fix is awaiting merge and retest. |
+| CD-02 | Failed release recovery | Git revert restores known-good behavior | Functionally passed: the app stayed on the known-good digest and the reverted revision synced; Argo convergence exceeded the 10-minute operational recovery window. HookFailed cleanup fix merged and synced in PR #28; controlled retest remains pending. |
 | MON-01 | Metrics | Traffic produces request, error, and latency measurements | Passed in Stage 07; Stage 08 load results are below |
 | MON-02 | Notifications | Known failure produces received firing/resolved notifications | Passed: Stage 07 notifications and Stage 08 backup failure/overdue alerts were received |
 | DR-01 | Database restore | Off-host backup restores into an isolated database with verified records | Passed: the latest backup restored 104 tickets and 3 comments; earlier restore also verified 2 migrations |

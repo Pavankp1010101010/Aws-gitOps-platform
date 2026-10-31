@@ -28,6 +28,7 @@ See [scan policy](../delivery/scan-policy.md). These fixtures do not install vul
 - Replacing the PostgreSQL pod preserved 104 tickets and 3 comments; application readiness returned HTTP 200.
 - Backup failure and overdue alerts fired/resolved, and the operator confirmed receipt.
 - The failed release's migration hook could not pull its nonexistent digest and did not run. The app remained on its good digest; after revert, the operator cleared the stale hook and synced current `main`. Argo then reported `Synced/Healthy`, `/health/ready` returned HTTP 200, and the app/database remained intact. Argo completed 11m30s after revert merge (14m23s after commit creation), exceeding the 10-minute operational recovery window; no API outage was observed and service restoration was not needed.
+- PR #28 merged the `HookFailed` migration-hook deletion policy and Argo synced it at `7fbced8d6bf3adc1cde44d28c633d7082335c9f3`. A controlled failed-release retest is still pending.
 
 ## Future checks
 
