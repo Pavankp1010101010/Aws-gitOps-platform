@@ -2,6 +2,7 @@
 
 [Stage index](README.md) | [Previous](06-end-to-end-gitops.md) | [Next](08-reliability-and-recovery.md)
 
+Status: Acceptance checks pass; installer hardening and final evidence are in the pushed branch awaiting PR merge. Sustained-load capacity was not measured.
 Status: Complete. Monitoring, notification, and point-in-time resource checks pass; sustained-load capacity was not measured.
 
 ## Entry conditions
@@ -57,6 +58,7 @@ The scoped SNS permission and bridge are deployed; the bridge health endpoint re
 - Root volume usage was 8.8 GiB of 29 GiB (32%). These are point-in-time measurements, not sustained peak capacity results.
 - A controlled Alertmanager firing/resolved pair was accepted by SNS. A separate CloudWatch `OK -> ALARM -> OK` test recorded successful SNS actions for both transitions. The operator confirmed receipt of both test pairs. One SNS email subscription is confirmed and another is pending.
 
+Argo health, application metric queries, dashboard access, both notification paths, and point-in-time resource recording are verified. Sustained-load capacity and delivery latency are not claimed. Complete this stage after merging the pushed installer hardening and evidence update; keep the existing host cleanup deadline in view.
 Argo health, application metric queries, dashboard access, both notification paths, and point-in-time resource recording are verified. Sustained-load capacity and delivery latency are not claimed. Keep the existing host cleanup deadline in view.
 
 Local Prometheus v3.5.0 `promtool` tests pass for missing application targets and the low-disk alert's timing, using synthetic inputs without changing the host filesystem.
