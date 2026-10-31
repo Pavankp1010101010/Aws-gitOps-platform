@@ -2,7 +2,7 @@
 
 [Project overview](../../README.md) | [Validation](../08-validation-and-evidence.md)
 
-Status: scheduled backup, scoped retention, backup alerts, and an isolated restore have been verified. A destructive host rebuild has not been performed and still requires explicit approval.
+Status: scheduled backup, scoped retention, backup alerts, isolated restore, and the explicitly approved host rebuild have been verified. The rebuilt host is healthy; a fresh Terraform plan reports no changes.
 
 ## Database restore prerequisites
 
@@ -63,6 +63,13 @@ above were required to complete reconciliation.
 8. Perform a controlled cutover and verify ingress/DNS if the address changed.
 9. Verify dashboards, notifications, scheduled backups, and host alarms.
 10. Record total recovery time and any manual steps.
+
+## Verified host rebuild - 2026-10-31
+
+- The user approved the fresh Terraform plan (1 add, 1 change, 1 destroy). It replaced `i-0cf08e27462505e8c` with `i-01c6edc2d87a8be2d`, updated the host alarm, and deleted the old 30-GiB root disk. The subsequent Terraform plan reported no changes.
+- CloudTrail recorded termination of the old host at 12:06:53Z; the replacement launched at 12:07:36Z. Pinned cloud-init completed, K3s became Ready, and the Argo root Application was applied after creating the application database Secret out of band. Monitoring Secrets were regenerated without logging their values.
+- The latest verified pre-rebuild backup, `postgres/automated/20261031T110153Z.dump` (8,702 bytes, AES256), was restored to the new PostgreSQL pod. Use `pg_restore` inside the PostgreSQL pod: the minimal host does not install the PostgreSQL client tools. The application returned HTTP 200 from `/health/ready` at 12:27:10Z with 104 tickets and 3 comments. From the first destructive EC2 change to verified readiness was 20m17s, within the 60-minute target.
+- The backup timer and monitoring bridge are active. A post-rebuild backup, `postgres/automated/20261031T122359Z.dump` (8,730 bytes, AES256), uploaded successfully at 12:24:01Z.
 
 ## Limitations
 

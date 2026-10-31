@@ -4,10 +4,7 @@
 
 ## Cost model
 
-The approved project state bucket and its protection configuration have been created and verified. Stage 04 deployed the environment foundation, including an m7i-flex.large host, ECR, backup bucket, notifications, and alarm. The host is running and billable; the current Stage 05 host launched at
-2026-10-30 17:45 UTC after several bootstrap replacements. Earlier instances
-also accrued runtime charges before replacement. S3 requests/storage can also
-consume credits.
+The approved project state bucket and its protection configuration have been created and verified. Stage 04 deployed the environment foundation, including an m7i-flex.large host, ECR, backup bucket, notifications, and alarm. The current host, `i-01c6edc2d87a8be2d`, launched at 2026-10-31 12:07:36 UTC during the approved Stage 08 rebuild; earlier instances also accrued runtime charges before replacement. S3 requests/storage can also consume credits.
 
 The user selected us-east-1 (preferred zone us-east-1c), approved the foundation and recovery, and set a manual cleanup deadline of 2026-11-01 21:00 IST. The non-root project profile has been verified against remote Terraform state. The active m7i-flex.large EC2 host runs the application, PostgreSQL, K3s, Argo CD, and monitoring. Work should reuse that host, avoid new managed services, and keep public ingress closed. Credits and budget alerts do not cap gross usage; unused EC2 hours do not establish eligibility for a larger host or cover storage, public-IP, and supporting charges.
 
@@ -43,9 +40,9 @@ $0.005 per public IPv4 address-hour.
 AWS rejected t3.medium as ineligible for this Free plan; neither historical t3
 estimate is the current host plan. On 2026-10-30, AWS reported m7i-flex.large
 (2 vCPU / 8 GiB) as Free Tier eligible and offered in us-east-1c, at
-$0.09576/hour. From the current host launch at 2026-10-30 17:45 UTC to the
-chosen deadline, approximately 45.7 hours remain; compute, one public IPv4
-and 30 GiB gp3 total about $4.76 before credits/tax. This is only the remaining
+$0.09576/hour. From the replacement host launch at 2026-10-31 12:07:36 UTC to
+the chosen deadline, approximately 27.4 hours remain; compute, one public IPv4
+and 30 GiB gp3 total about $2.85 before credits/tax. This is only the remaining
 core estimate for the current host, not total project spend; it excludes
 earlier host runtime, state/backups, ECR storage, data transfer, taxes, and
 other supporting usage.
@@ -54,13 +51,15 @@ $4.26 core estimate for that window, but less memory headroom. Neither price is
 a capacity reservation, complete quote, or spending cap.
 
 The earlier $5-$7 weekend range was a rough t3-based planning estimate and is
-superseded for the selected m7i-flex.large. The $4.76 figure is only an
-estimate for the current host until the chosen deadline, not a guaranteed
-maximum or total project estimate. Previous host replacements, the state
-bucket, supporting services, taxes, usage after the deadline, large transfers,
-snapshots, or paid options add cost. The $10 project usage boundary could be
-exceeded. Review actual billing after its reporting delay; credits reduce
-eligible net payment but do not change gross usage.
+superseded for the selected m7i-flex.large. The prior $4.76 estimate applied
+to the host that was terminated during the approved rebuild. The current
+$2.85 estimate is only the remaining core usage for the replacement host until
+the chosen deadline, not a guaranteed maximum or total project estimate.
+Previous host replacements, the state bucket, supporting services, taxes,
+usage after the deadline, large transfers, snapshots, or paid options add
+cost. The $10 project usage boundary could be exceeded. Review actual billing
+after its reporting delay; credits reduce eligible net payment but do not
+change gross usage.
 
 AWS `GetAccountPlanState` reported an active Free plan with $138.35 remaining
 credits on 2026-10-30. Its usage report contained no EC2 usage item. The user
@@ -151,22 +150,22 @@ costs are tracked. Stopping compute is not completion of cleanup.
 
 | Deployment date | Region | Instance and disk | Start/end time | Estimated spend | Observed charge | Retained resources |
 |---|---|---|---|---|---|---|
-| State bootstrap applied 2026-10-29; environment applied 2026-10-30 | us-east-1 | All 29 intended resources are in Terraform state. Current m7i-flex.large host `i-0cf08e27462505e8c` launched 2026-10-30 17:45:50 UTC; corrected SNS subscription is confirmed and the test message was received. Earlier host replacements also accrued runtime. | User-selected deadline: 2026-11-01 21:00 IST; manual cleanup, even if later stages are unfinished | The original 51-hour core estimate was about $5.34 before credits/tax; added Stage 05+ runtime and transfer are not included. Total may exceed the $10 gross project boundary. The $10 monthly account-wide alert is not a cap. | Cost Explorer was queried on 2026-10-31 16:40 IST; billing data was incomplete/estimated and no reliable project-attributable total was available. | State bucket and environment resources exist; clean retirement requires reviewed state/backup sequencing |
+| State bootstrap applied 2026-10-29; environment applied 2026-10-30; host rebuilt 2026-10-31 | us-east-1 | 29 environment resources are managed; current m7i-flex.large host `i-01c6edc2d87a8be2d` launched at 12:07:36Z with an encrypted 30-GiB gp3 root disk. Earlier host replacements also accrued runtime. | User-selected deadline: 2026-11-01 21:00 IST; manual cleanup, even if later stages are unfinished | Replacement-host core usage from launch to deadline is estimated at $2.85 before credits/tax; total project usage may exceed the $10 gross boundary. The $10 monthly account-wide alert is not a cap. | Latest Cost Explorer query (2026-10-31) returned account-wide, credit-adjusted data only through 2026-10-30; no project-attributable or final charge is available. | State bucket and environment resources exist; clean retirement requires reviewed state/backup sequencing |
 
-### Cost Explorer check - 2026-10-31 16:40 IST
+### Cost Explorer check - 2026-10-31
 
-The month-to-date Cost Explorer query was account-wide and grouped by service.
-The 2026-10-29 and 2026-10-30 daily results were marked estimated and had no
-consolidated totals; 2026-10-31 was still partial and showed USD 0.00 at query
-time. This is delayed billing data, not evidence that the project is free or
-that charges are zero. Cost Explorer also cannot attribute unrelated account
-usage to this project without an appropriate cost-allocation setup. The
-`agtp-demo-monthly` budget is USD 10/month, account-wide, and advisory only.
+The latest Cost Explorer query was account-wide and grouped by service. Daily
+unblended totals through 2026-10-30 were near zero or credit-adjusted; the
+2026-10-31 period was not yet reported. This is delayed billing data, not
+evidence that the project is free or that gross charges are zero. Cost Explorer
+cannot attribute unrelated account usage to this project without appropriate
+cost-allocation setup. The `agtp-demo-monthly` budget is USD 10/month,
+account-wide, and advisory only.
 
-At that check, approximately 28 hours 20 minutes remained until the selected
-cleanup deadline. The current host's remaining compute, public IPv4, and 30 GiB
-gp3 core-cost estimate was about USD 2.95 before credits/tax. This is not a
-total project estimate: earlier instance runtime, retained buckets, images,
-alarms, requests, transfers, and any delayed reporting are excluded.
+At the replacement host launch, approximately 27.4 hours remained until the
+selected cleanup deadline. Its compute, public IPv4, and 30 GiB gp3 core-cost
+estimate was about USD 2.85 before credits/tax. This is not a total project
+estimate: earlier instance runtime, retained buckets, images, alarms, requests,
+transfers, and delayed reporting are excluded.
 
 Stopping EC2 is not full cleanup: storage and other resources may continue to incur charges.

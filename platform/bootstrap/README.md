@@ -2,12 +2,11 @@
 
 [Platform overview](../README.md) | [Stage 05](../../stages/05-k3s-and-argocd.md)
 
-Status: Deployed on 2026-10-30. Cloud-init, K3s, encrypted secrets, Traefik,
-Argo CD readiness, host-reboot recovery, and no-drift checks pass. The root
-Application reconciled its ConfigMap smoke test. A private image pull and an
-accelerated credential-refresh check after restarting K3s passed; the original
-ECR token's behavior after its full 12-hour expiry was not directly tested.
-SSM access to the private Argo endpoint was verified.
+Status: Rebuilt and verified on 2026-10-31 after the explicitly approved
+Terraform replacement. Cloud-init, K3s, encrypted secrets, Traefik, Argo CD,
+application recovery, and a no-drift plan pass. The host-rebuild runbook records
+the 20m17s recovery and verified database restore. The original ECR token's
+behavior after its full 12-hour expiry was not directly tested.
 
 ## Pinned components
 

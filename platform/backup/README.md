@@ -1,6 +1,6 @@
 # PostgreSQL backups
 
-Status: the host timer, S3 upload, scoped seven-day retention, isolated restore, and backup alert path have been verified. A destructive host rebuild remains unperformed.
+Status: the host timer, S3 upload, scoped seven-day retention, isolated restore, backup alert path, and approved host rebuild have been verified. The rebuilt host produced a new encrypted backup.
 
 The host runs the backup as a root-owned systemd timer, not as a Kubernetes pod. This keeps EC2 instance-role credentials out of application and backup containers while retaining the existing role's S3 access scoped to `postgres/*`.
 
@@ -30,3 +30,4 @@ Restores must use a separate isolated database and synthetic data. Never overwri
 - The backup restored into a temporary isolated database with 4 tickets, 3 comments, and 2 migrations. SSM reported a one-second restore command duration; the temporary database and host dump were removed.
 - At 10:35:25Z, the latest verified backup point was 90.3 minutes old. No data-loss incident occurred; this is the observed potential recovery-point age at that check.
 - Backup-failed and backup-overdue alerts fired and resolved in Prometheus/Alertmanager, and the operator confirmed receipt.
+- The approved 2026-10-31 host rebuild restored 104 tickets and 3 comments from `postgres/automated/20261031T110153Z.dump`. The replacement host's timer is active, and a post-rebuild backup `postgres/automated/20261031T122359Z.dump` uploaded at 12:24:01Z (8,730 bytes, AES256).

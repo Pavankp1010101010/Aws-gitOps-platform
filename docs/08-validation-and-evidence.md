@@ -17,7 +17,7 @@ Stage 01 workstation and isolated container checks are recorded separately in th
 | CI-01 | Broken test | CI fails and no release update is proposed | Passed: temporary application test failed the required hosted job; PR blocked; removal restored success. The separate trusted release workflow was not triggered by that pull-request failure. |
 | CI-02 | Scan policy | Policy-blocking finding blocks release; exceptions are documented | Passed: HIGH blocked/LOW passed; initial image blocked; patched image and hosted scan passed; no exceptions |
 | CI-03 | Artifact traceability | Running digest maps to source commit and successful CI | Passed in Stage 06: live digest maps to application commit `083c0e5036bbb11a3671e4cd416bd7a79ae84965`; release, deployment-branch CI, post-merge CI, deployment PR #12, and live smoke are recorded in the [Stage 06 evidence](../stages/06-end-to-end-gitops.md). |
-| AWS-01 | Rebuild | Automation recreates intended resources without undocumented console changes | Not run |
+| AWS-01 | Rebuild | Automation recreates intended resources without undocumented console changes | Passed: approved Terraform replacement plan applied (1 add, 1 change, 1 destroy); cloud-init/K3s/Argo recovered and a post-apply plan reported no changes |
 | AWS-02 | Restricted access | Admin/database endpoints are not publicly reachable | Passed in Stage 05: tested public ports unreachable; Services are ClusterIP |
 | K8S-01 | Pod recovery | Deleted application pod is replaced and becomes ready | Passed: service recovery in 6.79 seconds |
 | K8S-02 | Registry authentication | Fresh private-image pulls work after original ECR token lifetime | Accelerated cache-reset pull passed; behavior after the original token's full 12-hour expiration was not directly tested |
@@ -26,7 +26,7 @@ Stage 01 workstation and isolated container checks are recorded separately in th
 | MON-01 | Metrics | Traffic produces request, error, and latency measurements | Passed in Stage 07; Stage 08 load results are below |
 | MON-02 | Notifications | Known failure produces received firing/resolved notifications | Passed: Stage 07 notifications and Stage 08 backup failure/overdue alerts were received |
 | DR-01 | Database restore | Off-host backup restores into an isolated database with verified records | Passed: the latest backup restored 104 tickets and 3 comments; earlier restore also verified 2 migrations |
-| DR-02 | Host rebuild | Host recreation plus secret initialization and restore returns service | Not run |
+| DR-02 | Host rebuild | Host recreation plus secret initialization and restore returns service | Passed: new host initialized with out-of-band secrets; the 11:01:53Z AES256 backup restored 104 tickets and 3 comments; `/health/ready` returned HTTP 200 |
 | COST-01 | Cleanup | Remaining resources match explicit retention decisions | Not run |
 
 ## Performance and recovery measurements
@@ -41,7 +41,7 @@ Set a target before testing. Do not invent baseline values.
 | Database recovery time | Restore start to verified usable data | <= 30 minutes | Baseline SSM restore reported 1 second; fresh 104-ticket/3-comment isolated restore completed in 2 seconds |
 | Potential backup data-loss window | Incident time minus restored backup recovery point | <= 24 hours while daily backups meet schedule | No incident occurred. Latest verified backup: 11:01:53Z on 2026-10-31; isolated restore completed at 11:05:27Z and recovered 104 tickets/3 comments. At 11:09:47Z, that recovery point was 7m54s old. |
 | Load behavior | p95 latency and errors at stated request rate and duration | p95 <= 500 ms; errors < 1%; 5 requests/second for 5 minutes | Passed with k6 v2.3.0: 1,501 requests in 5 minutes (5.003 RPS), p95 3.01 ms, 0% errors, 0 dropped iterations; 100 synthetic tickets on one m7i-flex.large host |
-| Host rebuild time | Rebuild start to restored verified application | <= 60 minutes | Not measured |
+| Host rebuild time | First destructive infrastructure change to restored verified application | <= 60 minutes | 20m17s: old host termination at 12:06:53Z to `/health/ready` HTTP 200 and 104/3 records at 12:27:10Z |
 
 These initial targets were approved in Stage 01; they are not achieved results. Use 100 synthetic tickets and an even list/detail request mix for the initial load test (at least 1,500 measured load requests); report achieved request count, dropped iterations, and failures as well as latency. A constant-arrival-rate run may include the start-boundary iteration, so a count above 1,500 is valid. Confirm dataset/resource sizing and any explicit target revision before testing.
 
@@ -58,6 +58,8 @@ For load tests, record tool version, request mix, dataset, host size, duration, 
 - Deleting the application pod restored service in 6.79 seconds. A separate PostgreSQL pod replacement completed in 8 seconds; ticket/comment counts remained 104/3 and `/health/ready` returned HTTP 200. The fresh backup was taken before this database-persistence drill.
 - Backup failure and overdue alerts were triggered and resolved in Prometheus and Alertmanager; the operator confirmed receipt of the notifications.
 - The controlled failed-release exercise used a nonexistent image digest. Its migration hook entered `ImagePullBackOff` and did not run; the application stayed ready on the known-good digest and PostgreSQL remained healthy. The failed hook Job disappeared after its active deadline, but Argo retried the failed operation. The operator terminated that stale operation with the supported Argo CD command and synced auto-tracked `main` without an explicit revision. The sync succeeded at 11:54:11Z on `5e78eec81ff57056978d823257b521561044b286`; the app and PostgreSQL pods were Ready, `/health/ready` returned HTTP 200, no migration Job remained, and the database contained 104 tickets and 3 comments. The previously measured reverted-revision convergence took 11m30s after revert merge (14m23s after commit creation), exceeding the 10-minute target. No API outage was observed; do not report the recovery-time target as passed.
+- After explicit approval, Terraform replaced EC2 `i-0cf08e27462505e8c` with `i-01c6edc2d87a8be2d` (1 add, 1 change, 1 destroy); the old 30-GiB root disk was deleted. CloudTrail recorded old-host termination at 12:06:53Z and EC2 launch at 12:07:36Z. Cloud-init completed, K3s became Ready, the database Secret was generated out of band without logging its value, monitoring secrets/bridge were initialized, and Argo reconciled the support-ticket and monitoring Applications.
+- The `20261031T110153Z.dump` recovery point (8,702 bytes, AES256) was restored into the rebuilt PostgreSQL pod. At 12:27:10Z, the application returned HTTP 200 from `/health/ready` and the database contained 104 tickets and 3 comments. The measured interval from the first destructive EC2 change to verified service was 20m17s, within the 60-minute target. A post-rebuild backup, `postgres/automated/20261031T122359Z.dump` (8,730 bytes, AES256), was uploaded at 12:24:01Z; the daily timer is active. A fresh Terraform plan reported no changes.
 
 ## Evidence to retain after implementation
 

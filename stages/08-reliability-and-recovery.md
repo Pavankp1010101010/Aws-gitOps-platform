@@ -2,11 +2,11 @@
 
 [Stage index](README.md) | [Previous](07-monitoring.md) | [Next](09-completion-and-handover.md)
 
-Status: In progress. Non-destructive recovery checks are recorded; the 10-minute release-recovery target was missed, and the host rebuild remains gated on explicit user approval.
+Status: Complete (2026-10-31). The host rebuild and restore passed in 20m17s; the separate 10-minute failed-release convergence target was missed and remains documented as a limitation.
 
 ## Entry conditions
 
-Stage 07 is verified. Recovery targets and synthetic-data scope are recorded in the acceptance matrix. Explicit approval for the destructive host rebuild is pending; do not destroy or replace the active host without it.
+Stage 07 is verified. Recovery targets and synthetic-data scope are recorded in the acceptance matrix. The approved host rebuild is complete; do not repeat it without a fresh reviewed plan and explicit approval.
 
 ## Goal
 
@@ -21,7 +21,7 @@ Prove platform behavior during failures, rather than assuming it from configurat
 - [x] Revert the GitOps release and verify actual service health; record that Argo convergence exceeded the 10-minute operational recovery window, although the app remained healthy throughout.
 - [x] Restore both a baseline and fresh off-host backup into isolated databases and verify tickets/comments.
 - [x] Replace the PostgreSQL pod and confirm ticket/comment persistence and application readiness.
-- [ ] Perform an approved host rebuild using Terraform/bootstrap, secure secret initialization, and data restoration.
+- [x] Perform the approved host rebuild using Terraform/bootstrap, secure secret initialization, and data restoration; verified service recovery in 20m17s.
 - [x] Update recovery runbooks from actual findings and timings.
 
 ## Work locations
@@ -32,11 +32,12 @@ Checks/load scripts in [platform/tests](../platform/tests/README.md); host backu
 
 - [x] K8S-01 and CD-02 have measured outcomes; the app remained healthy throughout, while revert-to-Argo-success took 11m30s after merge (14m23s after commit creation) and exceeded the 10-minute operational recovery window.
 - [x] DR-01 verifies data and reports the backup recovery point; at 11:09:47Z the latest verified backup was 7m54s old and restored 104 tickets/3 comments (no real incident occurred).
-- [ ] DR-02 and AWS-01 prove host rebuild without undocumented console changes.
+- [x] DR-02 and AWS-01 prove host rebuild without undocumented console changes; the 11:01:53Z backup restored 104 tickets/3 comments and readiness returned HTTP 200.
 - [x] Backup failure/overdue notifications were received.
 - [x] Load results report request rate, duration, p95 latency, errors, and host sizing against previously selected targets.
 - [x] Schema compatibility and single-host downtime limitations are documented.
 - [x] Record the controlled failed-release behavior after the HookFailed fix: the failed hook Job disappeared after its active deadline, but Argo retried until the stale operation was terminated and current `main` synced. The service stayed healthy; the 10-minute operational recovery target was exceeded.
+- [x] Host rebuild completed from the first destructive EC2 change through verified readiness in 20m17s, within the 60-minute target; a post-rebuild backup and zero-drift Terraform plan were verified.
 
 Do not overwrite the active database for a drill. Do not destroy the only data copy. Do not claim HPA, high availability, or zero downtime unless separately implemented and proven.
 
