@@ -37,6 +37,14 @@ fi
 if ! getent passwd "$user" >/dev/null; then
   useradd --system --gid "$user" --no-create-home --shell /usr/sbin/nologin "$user"
 fi
+
+aws_cli_path="$(readlink -f "$(command -v aws)")"
+if [[ "$aws_cli_path" == /usr/local/aws-cli/* ]]; then
+  chgrp -R "$user" /usr/local/aws-cli
+  chmod -R o-rwx /usr/local/aws-cli
+  chmod -R g+rX /usr/local/aws-cli
+fi
+
 install -d --owner=root --group="$user" --mode=0750 /etc/agtp
 install -d --owner=root --group=root --mode=0755 /opt/agtp
 install --owner=root --group=root --mode=0755 "$script_dir/sns_webhook.py" /opt/agtp/sns_webhook.py
