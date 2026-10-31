@@ -83,6 +83,7 @@ jobs:
             > "$RUNNER_TEMP/monitoring-chart-rendered.yaml"
           kubectl kustomize platform/kubernetes/cluster \
             > "$RUNNER_TEMP/cluster-gitops-rendered.yaml"
+          grep -q 'ServerSideApply=true' "$RUNNER_TEMP/cluster-gitops-rendered.yaml"
           kubectl kustomize platform/monitoring \
             > "$RUNNER_TEMP/monitoring-gitops-rendered.yaml"
           bash platform/tests/validate-monitoring.sh \
