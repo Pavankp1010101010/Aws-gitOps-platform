@@ -7,19 +7,13 @@ if (!suppliedBaseURL) {
   throw new Error('BASE_URL is required and must be an HTTP loopback URL forwarded to the private application.');
 }
 
-const parsedBaseURL = new URL(suppliedBaseURL);
-if (
-  parsedBaseURL.protocol !== 'http:' ||
-  !['127.0.0.1', 'localhost', '[::1]'].includes(parsedBaseURL.hostname) ||
-  parsedBaseURL.username ||
-  parsedBaseURL.password ||
-  parsedBaseURL.pathname !== '/' ||
-  parsedBaseURL.search ||
-  parsedBaseURL.hash
-) {
+const loopbackURL = /^http:\/\/(?:127\.0\.0\.1|localhost|\[::1\])(?::([1-9][0-9]{0,4}))?\/?$/i;
+const parsedBaseURL = loopbackURL.exec(suppliedBaseURL);
+const port = parsedBaseURL && parsedBaseURL[1] ? Number(parsedBaseURL[1]) : 80;
+if (!parsedBaseURL || port > 65535) {
   throw new Error('BASE_URL must be an HTTP loopback URL forwarded to the private application.');
 }
-const baseURL = parsedBaseURL.origin;
+const baseURL = suppliedBaseURL.replace(/\/$/, '');
 
 export const options = {
   scenarios: {
