@@ -116,9 +116,6 @@ resource "aws_ecr_lifecycle_policy" "application" {
 resource "aws_s3_bucket" "backups" {
   bucket        = var.backup_bucket_name
   force_destroy = false
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 resource "aws_s3_bucket_versioning" "backups" {
