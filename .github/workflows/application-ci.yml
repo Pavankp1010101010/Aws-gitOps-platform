@@ -53,7 +53,7 @@ jobs:
         run: |
           npm run check
           npm test
-      - name: Validate GitOps Helm chart
+      - name: Validate GitOps Helm charts
         shell: bash
         run: |
           set -euo pipefail
@@ -70,7 +70,43 @@ jobs:
             platform/kubernetes/charts/support-ticket \
             --namespace support-ticket > "$RUNNER_TEMP/support-ticket-rendered.yaml"
           bash platform/tests/validate-chart.sh "$RUNNER_TEMP/support-ticket-rendered.yaml"
+          "$RUNNER_TEMP/linux-amd64/helm" repo add prometheus-community \
+            https://prometheus-community.github.io/helm-charts
+          "$RUNNER_TEMP/linux-amd64/helm" repo update prometheus-community
+          "$RUNNER_TEMP/linux-amd64/helm" pull prometheus-community/kube-prometheus-stack \
+            --version 92.16.1 --untar --untardir "$RUNNER_TEMP"
+          "$RUNNER_TEMP/linux-amd64/helm" lint "$RUNNER_TEMP/kube-prometheus-stack" \
+            --values platform/monitoring/values.yaml
+          "$RUNNER_TEMP/linux-amd64/helm" template monitoring \
+            "$RUNNER_TEMP/kube-prometheus-stack" --namespace monitoring \
+            --include-crds --values platform/monitoring/values.yaml \
+            > "$RUNNER_TEMP/monitoring-chart-rendered.yaml"
+          kubectl kustomize platform/kubernetes/cluster \
+            > "$RUNNER_TEMP/cluster-gitops-rendered.yaml"
+          kubectl kustomize platform/monitoring \
+            > "$RUNNER_TEMP/monitoring-gitops-rendered.yaml"
+          bash platform/tests/validate-monitoring.sh \
+            "$RUNNER_TEMP/monitoring-chart-rendered.yaml" \
+            "$RUNNER_TEMP/monitoring-gitops-rendered.yaml"
+          prometheus_version="3.5.0"
+          prometheus_archive="prometheus-${prometheus_version}.linux-amd64.tar.gz"
+          prometheus_url="https://github.com/prometheus/prometheus/releases/download/v${prometheus_version}"
+          generated_rules="platform/monitoring/tests/generated-alert-rules.yml"
+          trap 'rm -f "$generated_rules"' EXIT
+          curl --fail --location --silent --show-error \
+            "$prometheus_url/$prometheus_archive" --output "$RUNNER_TEMP/$prometheus_archive"
+          curl --fail --location --silent --show-error \
+            "$prometheus_url/sha256sums.txt" --output "$RUNNER_TEMP/prometheus-sha256sums.txt"
+          expected_sha="$(awk -v archive="$prometheus_archive" '$2 == archive { print $1 }' "$RUNNER_TEMP/prometheus-sha256sums.txt")"
+          test -n "$expected_sha"
+          echo "$expected_sha  $RUNNER_TEMP/$prometheus_archive" | sha256sum --check --status
+          tar -xzf "$RUNNER_TEMP/$prometheus_archive" -C "$RUNNER_TEMP"
+          python3 platform/monitoring/tests/extract-prometheus-rules.py \
+            platform/monitoring/manifests/application-alert-rules.yaml "$generated_rules"
+          "$RUNNER_TEMP/prometheus-${prometheus_version}.linux-amd64/promtool" \
+            test rules platform/monitoring/tests/alerts.test.yml
           python3 -m unittest discover -s platform/tests -p "test_update_image_digest.py"
+          python3 -m unittest discover -s platform/monitoring -p "test_sns_webhook.py"
           node --check platform/tests/smoke-test.mjs
           node --test platform/tests/smoke-test.test.mjs
       - name: Verify test-runner failure propagation

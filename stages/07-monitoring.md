@@ -2,7 +2,7 @@
 
 [Stage index](README.md) | [Previous](06-end-to-end-gitops.md) | [Next](08-reliability-and-recovery.md)
 
-Status: Not started.
+Status: In progress. GitOps configuration, dashboards, alert rules, and the authenticated SNS bridge are implemented; local validation passes, while CI and deployment are pending.
 
 ## Entry conditions
 
@@ -41,3 +41,11 @@ Record MON-01 and MON-02 results, notification timings, and redacted dashboards.
 ## Cost and approval gate
 
 Review alert usefulness and capacity before Stage 08. Do not equate monitoring on one host with independent application availability monitoring.
+
+## Current implementation
+
+The pinned `kube-prometheus-stack` chart and monitoring manifests are under `platform/monitoring`. Grafana and Prometheus remain private. Alertmanager calls a host-side bridge bound only to the K3s bridge address; the bridge publishes to the existing SNS topic using a topic-scoped EC2-role permission. The bridge token and Grafana password are generated on the host and stored in Kubernetes Secrets out of band.
+
+No monitoring resources or Terraform changes have been applied yet. Complete CI/local validation, merge the implementation, then apply the narrow SNS permission and install the bridge through SSM before syncing Argo CD. Do not mark the notification acceptance complete until the operator confirms both controlled messages arrived.
+
+Local Prometheus v3.5.0 `promtool` tests pass for missing application targets and the low-disk alert's timing, using synthetic inputs without changing the host filesystem.

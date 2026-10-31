@@ -1,0 +1,46 @@
+rule_files:
+  - generated-alert-rules.yml
+
+evaluation_interval: 1m
+
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'node_filesystem_avail_bytes{device="/dev/test",fstype="ext4",instance="low-space-test",job="node-exporter",mountpoint="/"}'
+        values: "1000+0x12"
+      - series: 'node_filesystem_size_bytes{device="/dev/test",fstype="ext4",instance="low-space-test",job="node-exporter",mountpoint="/"}'
+        values: "10000+0x12"
+      - series: 'node_filesystem_avail_bytes{device="/dev/test",fstype="ext4",instance="healthy-test",job="node-exporter",mountpoint="/"}'
+        values: "5000+0x12"
+      - series: 'node_filesystem_size_bytes{device="/dev/test",fstype="ext4",instance="healthy-test",job="node-exporter",mountpoint="/"}'
+        values: "10000+0x12"
+    alert_rule_test:
+      - eval_time: 9m
+        alertname: NodeRootFilesystemLowSpace
+        exp_alerts: []
+      - eval_time: 12m
+        alertname: NodeRootFilesystemLowSpace
+        exp_alerts:
+          - exp_labels:
+              device: /dev/test
+              fstype: ext4
+              instance: low-space-test
+              job: node-exporter
+              mountpoint: /
+              severity: warning
+            exp_annotations:
+              summary: Kubernetes host root filesystem is low on space
+              description: Less than fifteen percent of the host root filesystem remains available.
+
+  - interval: 1m
+    alert_rule_test:
+      - eval_time: 3m
+        alertname: SupportTicketUnavailable
+        exp_alerts:
+          - exp_labels:
+              namespace: support-ticket
+              service: support-ticket-support-ticket
+              severity: critical
+            exp_annotations:
+              summary: Support Ticket API is unavailable
+              description: Prometheus has failed to scrape the Support Ticket API for more than two minutes.

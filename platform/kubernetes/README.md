@@ -2,7 +2,7 @@
 
 [Platform overview](../README.md)
 
-Status: Stage 05 bootstrap is complete. The Stage 06 Helm chart is synced and Healthy in Argo CD; the private app and PostgreSQL are Running with a Bound 4 Gi PVC. API CRUD smoke and persistence across app-pod replacement passed; image-publication PR flow remains to be verified.
+Status: Stage 05 bootstrap and Stage 06 end-to-end GitOps delivery are complete. The Stage 06 Helm chart is synced and Healthy in Argo CD; the private app and PostgreSQL are Running with a Bound 4 Gi PVC. API CRUD smoke, persistence across app-pod replacement, and the digest-pinned image-publication PR flow passed. Stage 07 monitoring manifests are being implemented and are not deployed yet.
 
 ## Intended contents
 
@@ -26,6 +26,8 @@ Status: Stage 05 bootstrap is complete. The Stage 06 Helm chart is synced and He
 - Test local-volume permissions, pod replacement, and host-rebuild behavior.
 - Define Argo CD pruning carefully around persistent data and namespaces.
 - No baseline autoscaling claim; HPA requires a separate implemented and tested milestone.
+- Monitoring interfaces must remain private; Grafana uses an out-of-band admin Secret.
+- Alertmanager must not receive EC2 credentials. SNS notifications use the host-side authenticated bridge described in [monitoring configuration](../monitoring/README.md).
 
 Stateful resources and backup retention must have deliberate deletion behavior. Automated pruning must not accidentally erase the only usable database or backup.
 

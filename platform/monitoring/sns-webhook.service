@@ -1,0 +1,30 @@
+[Unit]
+Description=Authenticated Alertmanager to Amazon SNS bridge
+After=network-online.target k3s.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=agtp-sns-webhook
+Group=agtp-sns-webhook
+EnvironmentFile=/etc/agtp/sns-webhook.env
+ExecStart=/usr/bin/python3 /opt/agtp/sns_webhook.py
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectHome=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+ProtectSystem=strict
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictRealtime=true
+RestrictSUIDSGID=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target

@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
   - bootstrap-smoke.yaml
   - support-ticket-app.yaml
+  - monitoring-app.yaml

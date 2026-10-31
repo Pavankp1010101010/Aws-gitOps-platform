@@ -1,0 +1,42 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: support-ticket
+  labels:
+    release: monitoring
+spec:
+  groups:
+    - name: support-ticket-application
+      rules:
+        - alert: SupportTicketUnavailable
+          expr: absent(up{namespace="support-ticket",service="support-ticket-support-ticket"}) or up{namespace="support-ticket",service="support-ticket-support-ticket"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: Support Ticket API is unavailable
+            description: Prometheus has failed to scrape the Support Ticket API for more than two minutes.
+        - alert: SupportTicketHighServerErrorRate
+          expr: sum(rate(http_requests_total{namespace="support-ticket",status=~"5.."}[5m])) / clamp_min(sum(rate(http_requests_total{namespace="support-ticket"}[5m])), 0.001) > 0.05
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: Support Ticket API server error rate is high
+            description: More than five percent of observed requests returned a server error for five minutes.
+        - alert: SupportTicketHighP95Latency
+          expr: histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace="support-ticket"}[5m]))) > 0.5
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: Support Ticket API p95 latency is high
+            description: The p95 API request latency exceeded 500 milliseconds for five minutes.
+        - alert: NodeRootFilesystemLowSpace
+          expr: node_filesystem_avail_bytes{mountpoint="/",fstype=~"ext4|xfs"} / node_filesystem_size_bytes{mountpoint="/",fstype=~"ext4|xfs"} < 0.15
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: Kubernetes host root filesystem is low on space
+            description: Less than fifteen percent of the host root filesystem remains available.

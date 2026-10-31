@@ -14,14 +14,14 @@ Yes. Both are baseline components, together with Alertmanager, deployed through 
 
 Grafana dashboards do not themselves establish an alert delivery path.
 
-## Planned dashboards
+## Dashboards
 
 | Dashboard | Measurements |
 |---|---|
 | Application | Request rate, error ratio, p95 latency, running version |
-| Workloads | Ready replicas, restarts, pending pods, CPU/memory |
+| Workloads | Ready replicas, restarts, pending pods, CPU/memory (provided by the pinned chart) |
 | Host | CPU, memory, filesystem space, disk activity |
-| Backups | Last successful backup timestamp and job failures |
+| Backups | Last successful backup timestamp and job failures (planned for Stage 08) |
 
 Request latency must be instrumented with suitable histogram buckets. Avoid high-cardinality labels such as ticket IDs or raw request URLs.
 
@@ -29,11 +29,11 @@ Request latency must be instrumented with suitable histogram buckets. Avoid high
 
 | Alert | Test | Expected evidence |
 |---|---|---|
-| No available application replicas | Deploy a controlled failing version | Notification and deployment status |
+| No available application replicas | Observe a controlled scrape failure | Notification and deployment status |
 | Sustained API errors | Generate a controlled error condition | Error-rate graph and notification |
 | Repeated restarts | Trigger a test-only crash scenario | Restart counter and notification |
 | Low disk space | Test alert rule safely using synthetic rule input | Rule-test result; do not fill the live disk |
-| Backup failure or overdue backup | Force a safe backup failure or simulate stale timestamp | Notification with actionable recovery link |
+| Backup failure or overdue backup | Force a safe backup failure or simulate stale timestamp | Notification with actionable recovery link (Stage 08) |
 | EC2 status-check failure | Validate CloudWatch/SNS wiring using supported alarm test methods | External notification path evidence |
 
 Set numeric thresholds, evaluation windows, and recovery behavior before tests. Record actual detection times in the [validation record](08-validation-and-evidence.md).
@@ -55,4 +55,4 @@ Set numeric thresholds, evaluation windows, and recovery behavior before tests. 
 
 ## Notification destination
 
-Not selected yet. Choose an email or webhook destination during implementation, keep credentials outside Git, and test both firing and resolved notifications.
+The existing host-alert SNS topic is the selected destination. A small host-side authenticated webhook bridge publishes to SNS using the EC2 role, with `sns:Publish` scoped to that topic. Alertmanager receives only an out-of-band bearer token, not AWS credentials. Keep the token and Grafana password outside Git, and confirm delivery of both firing and resolved notifications during acceptance.
