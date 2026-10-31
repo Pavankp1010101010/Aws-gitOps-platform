@@ -2,7 +2,7 @@
 
 [Platform overview](../README.md)
 
-Status: Stages 05-07 are complete. The application and PostgreSQL are healthy through Argo CD, and the private API smoke and monitoring/notification checks passed. Stage 08 recovery work is in progress; the scheduled host-side backup implementation is in [platform/backup](../backup/README.md).
+Status: Stages 05-07 are complete. The application and PostgreSQL are healthy through Argo CD, and the private API smoke and monitoring/notification checks passed. Stage 08 recovery work is in progress; the controlled failed-release exercise preserved service but required stale-operation termination and a sync to current `main`. The scheduled host-side backup implementation is in [platform/backup](../backup/README.md).
 
 ## Intended contents
 

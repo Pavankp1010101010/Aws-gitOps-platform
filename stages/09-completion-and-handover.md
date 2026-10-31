@@ -2,11 +2,11 @@
 
 [Stage index](README.md) | [Previous](08-reliability-and-recovery.md)
 
-Status: In progress. Documentation reconciliation, recovery follow-up, and cost review are underway; destructive actions remain approval-gated.
+Status: In progress. Recovery evidence is reconciled; demo/evidence, final cost review, and cleanup remain. Destructive actions remain approval-gated.
 
 ## Entry conditions
 
-Stage 08 results are recorded. The failed-hook cleanup fix is merged and synced, but repeat recovery verification is pending; host rebuild and resource retirement require separate explicit approvals.
+Stage 08 non-destructive recovery results are recorded, including the controlled failed-release behavior and its release-target miss. Host rebuild and resource retirement require separate explicit approvals.
 
 ## Goal
 

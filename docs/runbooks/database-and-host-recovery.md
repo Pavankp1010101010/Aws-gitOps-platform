@@ -40,13 +40,16 @@ For a real incident, approve and document application cutover separately. Avoid 
 
 ## Failed-release recovery evidence - 2026-10-31
 
-The test revision referenced a nonexistent image digest. The migration hook pod entered `ImagePullBackOff` and never ran; the application Deployment remained ready on the known-good digest and PostgreSQL was not changed. After the revert PR merged, the stale Argo operation and hook required operator cleanup followed by a sync of current `main`. Argo completed the reverted revision at 10:32:03Z; readiness returned HTTP 200 and the database still contained 104 tickets. Argo completed 11m30s after revert merge and 14m23s after revert commit creation, exceeding the 10-minute operational recovery window; no API outage was observed and service restoration was not needed.
+The test revision referenced a nonexistent image digest. The migration hook pod entered `ImagePullBackOff` and never ran; the application Deployment stayed ready on the known-good digest and PostgreSQL was not changed. The failed Job disappeared after its active deadline, but Argo retried the failed operation. After the revert, the operator terminated the stale operation using the supported Argo CD command, then synced auto-tracked `main` without an explicit revision. That sync succeeded at 11:54:11Z on `5e78eec81ff57056978d823257b521561044b286`. The app and PostgreSQL pods were Ready, `/health/ready` returned HTTP 200, no migration Job remained, and the database contained 104 tickets and 3 comments. The previously measured reverted-revision convergence took 11m30s after revert merge and 14m23s after commit creation, exceeding the 10-minute operational recovery window. No API outage was observed; service restoration was not needed.
 
 For a future stuck operation, first confirm the current desired revision and image digest, then use the supported Argo CD `app terminate-op` command rather than directly patching the Application operation field. Inspect the migration Job and pod before removing only that failed hook; never delete or restart the application database as part of this cleanup. Re-sync the current branch and verify the Argo operation, application readiness, and database state.
 
 PR #28 adds the Argo CD `HookFailed` delete policy to the migration Job and is
-merged and synced at `7fbced8d6bf3adc1cde44d28c633d7082335c9f3`. Its automatic
-cleanup behavior has not yet been revalidated with a controlled failed release.
+merged and synced at `7fbced8d6bf3adc1cde44d28c633d7082335c9f3`. In the
+controlled invalid-digest exercise, the failed hook Job was removed after its
+active deadline; Argo nevertheless retried the operation, so hook cleanup alone
+did not resolve the stale operation. The supported termination and sync steps
+above were required to complete reconciliation.
 
 ## Host rebuild
 

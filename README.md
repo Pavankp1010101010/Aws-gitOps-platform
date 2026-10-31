@@ -2,7 +2,7 @@
 
 A cost-conscious DevOps portfolio project demonstrating repeatable AWS infrastructure, controlled application delivery, monitoring, and recovery.
 
-> Current status (2026-10-31): Stages 00-07 are complete. Stage 08 recovery checks are substantially verified: a fresh encrypted off-host backup restored 104 tickets and 3 comments in isolation, PostgreSQL pod replacement preserved those records, application readiness returned HTTP 200, and the load and alert drills passed. A failed-release drill exposed slow Argo convergence; its HookFailed cleanup fix is merged and synced, with a controlled retest pending. Stage 09 evidence, cost review, and final gated teardown are in progress. The single m7i-flex.large host remains live; its replacement and retirement are not authorized.
+> Current status (2026-10-31): Stages 00-07 are complete. Stage 08 non-destructive checks are recorded, including an isolated restore of 104 tickets and 3 comments, pod-recovery, load, and alert drills. During the failed-release drill, the app and database stayed healthy; the failed hook was removed after its deadline, but Argo retried until the stale operation was terminated and current `main` synced successfully at 11:54:11Z. The 10-minute release-recovery target was exceeded. Stage 08 host rebuild and Stage 09 cost review/evidence/teardown remain open and approval-gated; the single m7i-flex.large host remains live.
 
 ## Start here
 
@@ -55,7 +55,7 @@ aws-gitops-platform/
     `-- tests/README.md               Platform, recovery, and load-test evidence
 ```
 
-The AWS foundation, single-node K3s cluster, Argo CD delivery, monitoring, and application are deployed. Recovery evidence is recorded, including an explicit release-convergence target miss; a hook-cleanup fix and repeat test are pending. Host rebuild and final environment retirement remain approval-gated.
+The AWS foundation, single-node K3s cluster, Argo CD delivery, monitoring, and application are deployed. Recovery evidence includes a release-convergence target miss and a completed reconciliation after a controlled failed release; the app remained healthy, but the stale Argo operation required manual termination. Host rebuild and final environment retirement remain approval-gated.
 
 ## Deployed platform (baseline)
 
@@ -90,7 +90,7 @@ No EKS, RDS, AWS load balancer, or NAT Gateway is planned for the baseline. This
 | CI | Hosted tests/build/scan pass; required-check failure blocked a PR; release workflow creates digest-pinned deployment PRs |
 | GitOps delivery | Argo CD and Helm deployed; approved image update and private smoke test passed |
 | Monitoring | Prometheus/Grafana dashboards and Alertmanager/CloudWatch notifications verified |
-| Backups and recovery | Encrypted S3 backup, isolated restore, alerts, pod replacement, and load test passed; failed-hook fix/retest and host rebuild remain |
+| Backups and recovery | Encrypted S3 backup, isolated restore, alerts, pod replacement, and load test passed; failed-release recovery preserved service but exceeded the convergence target and required manual Argo operation termination; host rebuild remains |
 | Stage 09 portfolio and cleanup | Documentation and cost review underway; destructive rebuild and teardown still require explicit approval |
 
 ## Repository organization
