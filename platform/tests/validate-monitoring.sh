@@ -49,6 +49,20 @@ if "/etc/alertmanager/secrets/monitoring-sns-webhook/token" not in alertmanager_
     sys.exit("Alertmanager must use the mounted, out-of-band SNS webhook token.")
 if "send_resolved: true" not in alertmanager_config:
     sys.exit("Alertmanager must send resolved notifications.")
+
+defined_receivers = set(
+    re.findall(r"""(?m)^\s*-\s+name:\s*["']?([^"'\s]+)""", alertmanager_config)
+)
+route_receivers = set(
+    re.findall(r"""(?m)^\s*receiver:\s*["']?([^"'\s]+)""", alertmanager_config)
+)
+undefined_receivers = route_receivers - defined_receivers
+if undefined_receivers:
+    sys.exit(
+        "Alertmanager routes reference undefined receivers: "
+        + ", ".join(sorted(undefined_receivers))
+        + "."
+    )
 PY
 ! grep -q 'adminPassword:' platform/monitoring/values.yaml || {
   echo "Grafana credentials must not be stored in Helm values." >&2
