@@ -128,8 +128,8 @@ IAM role presence does not prove SSM, registry refresh, or backups work. Those r
 
 ## Retention and teardown
 
-- State and backup buckets have `prevent_destroy`; nonempty ECR has `force_delete=false`.
-- Full environment destroy is intentionally blocked by the protected backup bucket. Do not assume one destroy command cleans everything.
+- The state bucket retains `prevent_destroy`. This separately reviewed retirement-preparation change removes only the backup bucket's guard; both buckets keep `force_destroy=false`, and ECR keeps `force_delete=false`.
+- Removing the backup guard does not empty versioned objects or ECR images. Inventory and explicitly approve those contents before generating a fresh full environment destroy plan.
 - Before stopping/destroying compute, preserve needed data and confirm the exact environment and state.
 - For teardown, explicitly design retained-resource management/handoff first. A separate reviewed retirement procedure must handle protection changes, retained bucket resources/state, versions, and image contents. Do not use blanket targeting, state removal, force flags, or bucket emptying to bypass the gate.
 - The root disk is deleted with instance termination. It is not a durable backup.
