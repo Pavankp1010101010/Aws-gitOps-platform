@@ -74,5 +74,15 @@ kubectl -n monitoring create secret generic monitoring-grafana-admin \
 
 systemctl daemon-reload
 systemctl enable --now agtp-sns-webhook.service
-curl --fail --silent --show-error http://10.42.0.1:9811/healthz >/dev/null
-echo "SNS webhook bridge and out-of-band monitoring credentials are ready."
+for attempt in $(seq 1 30); do
+  if curl --fail --silent --show-error http://10.42.0.1:9811/healthz >/dev/null; then
+    echo "SNS webhook bridge and out-of-band monitoring credentials are ready."
+    exit 0
+  fi
+  sleep 2
+done
+
+echo "SNS webhook bridge did not become healthy within 60 seconds." >&2
+systemctl --no-pager --full status agtp-sns-webhook.service >&2 || true
+journalctl -u agtp-sns-webhook.service --no-pager -n 20 >&2 || true
+exit 1

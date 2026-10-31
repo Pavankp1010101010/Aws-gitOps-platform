@@ -7,6 +7,7 @@ Status: implementation in progress; the monitoring stack and host notification b
 ## Configuration
 
 - Argo CD installs the pinned `kube-prometheus-stack` chart (`92.16.1`).
+- The monitoring Application uses server-side apply so the chart's large CRDs are not rejected by the client-side last-applied annotation size limit.
 - Prometheus retains three days of metrics, bounded to 3,500 MB, with a 5 Gi local-path claim. Prometheus, Alertmanager, Grafana, and exporter resources have explicit requests and limits.
 - K3s-incompatible control-plane scrapes are disabled. The application ServiceMonitor scrapes `/metrics`; alert rules cover application availability, server errors, p95 latency, and low host disk space.
 - The low-disk alert has a `promtool` rule test using synthetic healthy and low-space series; it does not fill or modify the live host filesystem.
