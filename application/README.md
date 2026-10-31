@@ -37,7 +37,7 @@ application/
 `-- package-lock.json
 ```
 
-Container startup is implemented in Stage 03. The image passed local and hosted HIGH/CRITICAL scans after pinning OpenSSL runtime libraries to 3.5.9-r0. Required-check failure/recovery was verified on the open PR. Terraform, Kubernetes, monitoring deployment, and GitOps implementation belong in the separate [platform directory](../platform/README.md).
+Container startup is implemented in Stage 03. The image passed local and hosted HIGH/CRITICAL scans after pinning OpenSSL runtime libraries to 3.5.9-r0. Required-check failure/recovery was verified in Stage 03; see the [validation evidence](../docs/11-stage03-results.md). Terraform, Kubernetes, monitoring deployment, and GitOps implementation belong in the separate [platform directory](../platform/README.md).
 
 ## Prerequisites and isolation
 
@@ -54,7 +54,8 @@ No global npm tools or shared runtime/configuration changes are required.
 Run in PowerShell. These commands start project-specific local services; they do not provision AWS or upload anything.
 
 ```powershell
-Set-Location -LiteralPath 'C:\Users\JGVC36\Documents\Personal\Project\aws-gitops-platform\application'
+$repoRoot = (git rev-parse --show-toplevel)
+Set-Location -LiteralPath (Join-Path $repoRoot 'application')
 npm.cmd ci --ignore-scripts
 npm.cmd run setup:local
 docker --context desktop-linux compose up -d --wait db
@@ -84,7 +85,8 @@ This retains the project container/network and named volume so data survives. Do
 Use this instead of `npm.cmd start`, not alongside it: both use loopback port 3100. Generate `.env` first only if it does not exist.
 
 ```powershell
-Set-Location -LiteralPath 'C:\Users\JGVC36\Documents\Personal\Project\aws-gitops-platform\application'
+$repoRoot = (git rev-parse --show-toplevel)
+Set-Location -LiteralPath (Join-Path $repoRoot 'application')
 docker --context desktop-linux compose build app
 docker --context desktop-linux compose up -d --wait db
 docker --context desktop-linux compose run --rm --no-deps migrate

@@ -6,12 +6,12 @@ Status: scheduled backup, scoped retention, backup alerts, and an isolated resto
 
 ## Database restore prerequisites
 
-- A completed, readable backup exists outside the EC2 host. The verified object was `postgres/automated/20261031T090505Z.dump` (7,397 bytes, AES256).
+- A completed, readable backup exists outside the EC2 host. The latest verified object was `postgres/automated/20261031T110153Z.dump` (8,702 bytes, AES256); the earlier `postgres/automated/20261031T090505Z.dump` was also restored successfully.
 - Backup timestamp, PostgreSQL version, format, and integrity metadata are known.
 - The host-side systemd timer runs daily at 02:15 UTC with up to 15 minutes of jitter; S3 lifecycle expires current PostgreSQL backup objects after seven days.
 - Backup failures and a missing/overdue success timestamp are surfaced through node-exporter textfile metrics and Alertmanager.
 - Restore identity has necessary S3 and decryption permissions.
-- A separate isolated restore database and storage are available. The drill restored 4 tickets, 3 comments, and 2 migrations; the temporary database and host dump were removed afterward.
+- A separate isolated restore database and storage are available. The latest backup restored 104 tickets and 3 comments; the earlier restore verified 4 tickets, 3 comments, and 2 migrations. Temporary databases and host dumps were removed afterward.
 - Credentials can be re-initialized securely.
 
 ## Restore drill
@@ -34,6 +34,8 @@ For a real incident, approve and document application cutover separately. Avoid 
 - Seven-day current-object expiry and one-day noncurrent-version cleanup apply only to `postgres/automated/`; the pre-existing legacy prefix was excluded.
 - The isolated restore command completed in one second according to SSM. This measures the command execution, not a full host rebuild or application cutover.
 - At 10:35:25Z, the latest verified recovery point (09:05:07Z) was 90.3 minutes old. No data-loss incident occurred; this is the observed potential recovery-point age at that check.
+- At 11:05:25Z, the latest backup was restored into an isolated database and matched the live database's 104-ticket/3-comment counts. The temporary database was removed. At 11:09:47Z, the backup recovery point was 7m54s old.
+- At 11:05:53Z, the PostgreSQL pod was replaced; readiness returned at 11:06:01Z. Ticket and comment counts remained 104 and 3, and the application readiness endpoint returned HTTP 200.
 - Backup-failed and backup-overdue alerts fired and resolved in Prometheus/Alertmanager, and the operator confirmed receipt.
 
 ## Failed-release recovery evidence - 2026-10-31

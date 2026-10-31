@@ -11,13 +11,13 @@ This is the authoritative stage order and progress tracker for the Support Ticke
 | [00 - Planning](00-planning.md) | Documented scope, architecture, and separate application/platform directories | None | Complete: documentation only |
 | [01 - Decisions and workstation](01-decisions-and-workstation.md) | Confirmed choices, source control, and verified local tools | 00 | Complete: protection enabled verified; detailed settings user-confirmed |
 | [02 - Local application](02-local-application.md) | Working ticket application with PostgreSQL and tests | 01 | Complete: local checks passed; services stopped |
-| [03 - Containers and CI](03-containers-and-ci.md) | Reproducible image build and tested CI checks | 02 | Complete: image gate, hosted CI, blocked-failure and recovery verified; PR unmerged |
+| [03 - Containers and CI](03-containers-and-ci.md) | Reproducible image build and tested CI checks | 02 | Complete: image gate, hosted CI, blocked-failure and recovery verified |
 | [04 - AWS foundation](04-aws-foundation.md) | Approved, Terraform-managed AWS resources | 01, 03; cost approval | Complete: all 29 resources applied, verified, and no Terraform drift |
 | [05 - K3s and Argo CD](05-k3s-and-argocd.md) | Restricted, bootstrapped cluster with working registry/Git access | 04 | Complete: Argo healthy, private ECR pull and accelerated fresh-credential check passed, SSM access verified |
 | [06 - End-to-end GitOps](06-end-to-end-gitops.md) | Approved source changes reach the application through immutable images | 03, 05 | Complete |
 | [07 - Monitoring](07-monitoring.md) | Useful dashboards and verified notifications | 06 | Complete |
 | [08 - Reliability and recovery](08-reliability-and-recovery.md) | Measured load, release recovery, backup restore, and rebuild results | 07 | In progress |
-| [09 - Completion and handover](09-completion-and-handover.md) | Reproducible portfolio evidence, honest results, verified cleanup | 08 | Not started |
+| [09 - Completion and handover](09-completion-and-handover.md) | Reproducible portfolio evidence, honest results, verified cleanup | 08 | In progress: documentation and cost review; destructive approvals pending |
 
 Stage 04 waits for local checks to reduce unnecessary cloud runtime. This is the recommended execution sequence, not a technical requirement that AWS needs application code.
 
@@ -53,7 +53,7 @@ Append an entry when implementation occurs:
 | 2026-10-31 | 06 | Automatic progression after Stage 05 completion | [Stage 06 results](06-end-to-end-gitops.md): reviewed release and GitOps PRs merged; Argo healthy at the digest-pinned image; CI and private loopback smoke passed | Complete |
 | 2026-10-31 | 07 | Automatic progression after Stage 06; operator confirmed receipt of Alertmanager firing/resolved and CloudWatch alarm/OK test pairs | [Stage 07 results](07-monitoring.md): Argo healthy; Prometheus/Grafana queries, dashboards, SNS paths, and point-in-time host/pod resource usage verified | Sustained-load capacity and delivery latency not measured; backup monitoring deferred until Stage 08 |
 | 2026-10-31 | 08 | Automatic progression after Stage 07; non-destructive recovery work only until explicit rebuild approval | Existing RTO/RPO and load targets are recorded in the [acceptance matrix](../docs/08-validation-and-evidence.md); seven-day S3 retention selected; synthetic data only | Destructive host rebuild not approved |
-| 2026-10-31 | 08 | Non-destructive recovery checks executed; no host rebuild | [Stage 08 evidence](../docs/08-validation-and-evidence.md): backup/retention, isolated restore, alerts, load, 6.79-second pod recovery, and revert validated; 104 tickets remained; Argo completed reverted revision `d2a48a22` | Argo convergence took 11m30s after merge; app stayed healthy throughout, but the 10-minute operational recovery window was exceeded; database restart, host rebuild, and cleanup remain |
+| 2026-10-31 | 08 | Non-destructive recovery checks executed; no host rebuild | [Stage 08 evidence](../docs/08-validation-and-evidence.md): fresh backup/restore, alerts, load, application and PostgreSQL pod replacement, and revert validated; 104 tickets/3 comments remained | Argo convergence took 11m30s after merge; app stayed healthy throughout, but the 10-minute operational recovery window was exceeded; failed-hook fix/retest and explicit host-rebuild decision remain |
 
 Use the [acceptance matrix](../docs/08-validation-and-evidence.md) for detailed test results. Store real, redacted evidence only once it exists; link it from this record.
 

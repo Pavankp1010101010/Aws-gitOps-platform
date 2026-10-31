@@ -9,7 +9,7 @@ The approved project state bucket and its protection configuration have been cre
 also accrued runtime charges before replacement. S3 requests/storage can also
 consume credits.
 
-The user selected us-east-1 (preferred zone us-east-1c), approved the foundation and recovery, and set a manual cleanup deadline of 2026-11-01 21:00 IST. The non-root project profile has been verified against remote Terraform state. Work should reuse the existing host, avoid new managed services, and keep public ingress closed. Credits and budget alerts do not cap gross usage; unused EC2 hours do not establish eligibility for a larger host or cover storage, public-IP, and supporting charges.
+The user selected us-east-1 (preferred zone us-east-1c), approved the foundation and recovery, and set a manual cleanup deadline of 2026-11-01 21:00 IST. The non-root project profile has been verified against remote Terraform state. The active m7i-flex.large EC2 host runs the application, PostgreSQL, K3s, Argo CD, and monitoring. Work should reuse that host, avoid new managed services, and keep public ingress closed. Credits and budget alerts do not cap gross usage; unused EC2 hours do not establish eligibility for a larger host or cover storage, public-IP, and supporting charges.
 
 | Resource | Potential charge |
 |---|---|
@@ -151,6 +151,22 @@ costs are tracked. Stopping compute is not completion of cleanup.
 
 | Deployment date | Region | Instance and disk | Start/end time | Estimated spend | Observed charge | Retained resources |
 |---|---|---|---|---|---|---|
-| State bootstrap applied 2026-10-29; environment applied 2026-10-30 | us-east-1 | All 29 intended resources are in Terraform state. m7i-flex.large host launched 2026-10-30 12:42 UTC; corrected SNS subscription is confirmed and the test message was received. | User-selected deadline: 2026-11-01 21:00 IST; manual cleanup, even if later stages are unfinished | The original 51-hour core estimate was about $5.34 before credits/tax; added Stage 05 runtime and transfer are not included. Total may exceed the $10 gross project boundary. The $10 monthly account-wide alert is not a cap. | Billing API reported $138.35 credit as of 2026-10-30; actual project charges are not measured or attributable | State bucket and environment resources exist; clean retirement requires reviewed state/backup sequencing |
+| State bootstrap applied 2026-10-29; environment applied 2026-10-30 | us-east-1 | All 29 intended resources are in Terraform state. Current m7i-flex.large host `i-0cf08e27462505e8c` launched 2026-10-30 17:45:50 UTC; corrected SNS subscription is confirmed and the test message was received. Earlier host replacements also accrued runtime. | User-selected deadline: 2026-11-01 21:00 IST; manual cleanup, even if later stages are unfinished | The original 51-hour core estimate was about $5.34 before credits/tax; added Stage 05+ runtime and transfer are not included. Total may exceed the $10 gross project boundary. The $10 monthly account-wide alert is not a cap. | Cost Explorer was queried on 2026-10-31 16:40 IST; billing data was incomplete/estimated and no reliable project-attributable total was available. | State bucket and environment resources exist; clean retirement requires reviewed state/backup sequencing |
+
+### Cost Explorer check - 2026-10-31 16:40 IST
+
+The month-to-date Cost Explorer query was account-wide and grouped by service.
+The 2026-10-29 and 2026-10-30 daily results were marked estimated and had no
+consolidated totals; 2026-10-31 was still partial and showed USD 0.00 at query
+time. This is delayed billing data, not evidence that the project is free or
+that charges are zero. Cost Explorer also cannot attribute unrelated account
+usage to this project without an appropriate cost-allocation setup. The
+`agtp-demo-monthly` budget is USD 10/month, account-wide, and advisory only.
+
+At that check, approximately 28 hours 20 minutes remained until the selected
+cleanup deadline. The current host's remaining compute, public IPv4, and 30 GiB
+gp3 core-cost estimate was about USD 2.95 before credits/tax. This is not a
+total project estimate: earlier instance runtime, retained buckets, images,
+alarms, requests, transfers, and any delayed reporting are excluded.
 
 Stopping EC2 is not full cleanup: storage and other resources may continue to incur charges.

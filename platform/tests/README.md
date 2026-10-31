@@ -22,8 +22,10 @@ See [scan policy](../delivery/scan-policy.md). These fixtures do not install vul
 
 - Backup upload and seven-day retention were verified for `postgres/automated/`; the successful object was 7,397 bytes with AES256 encryption.
 - Isolated restore verified 4 tickets, 3 comments, and 2 migrations. The SSM restore command reported one second.
+- The fresh 11:01:53Z backup (8,702 bytes, AES256) restored into an isolated database with 104 tickets and 3 comments; the temporary database was removed afterward.
 - The k6 v2.3.0 five-minute run against 100 synthetic tickets completed 1,501 requests at 5.003 RPS, p95 3.01 ms, 0% failures, and zero dropped iterations on one m7i-flex.large host.
 - Application pod replacement restored service in 6.79 seconds; the database remained at 104 tickets.
+- Replacing the PostgreSQL pod preserved 104 tickets and 3 comments; application readiness returned HTTP 200.
 - Backup failure and overdue alerts fired/resolved, and the operator confirmed receipt.
 - The failed release's migration hook could not pull its nonexistent digest and did not run. The app remained on its good digest; after revert, the operator cleared the stale hook and synced current `main`. Argo then reported `Synced/Healthy`, `/health/ready` returned HTTP 200, and the app/database remained intact. Argo completed 11m30s after revert merge (14m23s after commit creation), exceeding the 10-minute operational recovery window; no API outage was observed and service restoration was not needed.
 

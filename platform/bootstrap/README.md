@@ -3,10 +3,11 @@
 [Platform overview](../README.md) | [Stage 05](../../stages/05-k3s-and-argocd.md)
 
 Status: Deployed on 2026-10-30. Cloud-init, K3s, encrypted secrets, Traefik,
-Argo CD readiness, reboot recovery, and no-drift checks pass. The root
-Application synced revision `c7f1bc58004fb5d95c0ec79073da471fe1963df7` and
-reconciled its ConfigMap smoke test. A private image pull, token-refresh, and
-workstation port-forward remain pending.
+Argo CD readiness, host-reboot recovery, and no-drift checks pass. The root
+Application reconciled its ConfigMap smoke test. A private image pull and an
+accelerated credential-refresh check after restarting K3s passed; the original
+ECR token's behavior after its full 12-hour expiry was not directly tested.
+SSM access to the private Argo endpoint was verified.
 
 ## Pinned components
 
@@ -56,9 +57,13 @@ upgrades/downgrades. Review logs before rerunning:
 - `systemctl status k3s agtp-argocd-port-forward`
 
 Changing EC2 user data with `user_data_replace_on_change = true` replaces the
-instance. Inspect a fresh Terraform plan for the exact replacement and
-dependent alarm changes before applying it. The current host has no
-application workload or user data to preserve. Do not reuse historical plans.
+instance. The current host runs the application, PostgreSQL, monitoring, and
+Argo CD, and contains synthetic ticket data. Instance replacement deletes the
+local root disk and may lose the active database. Before any replacement,
+verify a fresh off-host backup and isolated restore, inspect a fresh Terraform
+plan for the exact instance/alarm changes, and obtain explicit approval. Do not
+reuse historical plans or treat a successful pod restart as proof of host
+rebuild recovery.
 
 ## Operations
 
@@ -79,10 +84,9 @@ report `Synced` and `Healthy` before recording GitOps acceptance.
 
 The `.github/workflows/stage05-ecr-smoke.yml` workflow uses the main-branch
 OIDC publisher role to build and publish an immutable private smoke image.
-After the workflow is merged, its main-branch push creates the first image;
-record the logged tag and digest. Pull it with `imagePullPolicy: Always`, then
-run the workflow again after at least 12 hours and pull the new run's unique
-tag to verify credential refresh. Never treat a cached image as proof.
+The image pull and accelerated credential-provider refresh after clearing the
+K3s cache are verified in the [Stage 05 evidence](../../stages/05-k3s-and-argocd.md).
+The original token's full 12-hour expiration behavior was not directly tested.
 
 For private browser/API access, first establish a Session Manager port-forward
 to remote port 8443 (the local SSM plugin is required), then browse to
@@ -96,6 +100,6 @@ change it after the first login. The web/API endpoint is reachable only over
 the loopback-bound port-forward.
 
 After a host reboot, K3s and the loopback Argo port-forward start through
-systemd; Kubernetes restarts Argo CD and Traefik pods. Validate a fresh ECR
-pull from a unique, immutable image after at least 12 hours from the initial
-test pull. An already-cached image is not evidence of credential refresh.
+systemd; Kubernetes restarts Argo CD and Traefik pods. For future image-pull
+tests, use a unique immutable image and `imagePullPolicy: Always`; an
+already-cached image is not evidence of credential refresh.
