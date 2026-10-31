@@ -44,3 +44,63 @@ tests:
             exp_annotations:
               summary: Support Ticket API is unavailable
               description: Prometheus has failed to scrape the Support Ticket API for more than two minutes.
+
+  - interval: 1m
+    alert_rule_test:
+      - eval_time: 6m
+        alertname: SupportTicketPostgresBackupOverdue
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+            exp_annotations:
+              summary: Support Ticket PostgreSQL backup is overdue
+              description: No successful off-host database backup has completed within the last 24 hours.
+
+  - interval: 1m
+    input_series:
+      - series: 'agtp_postgres_backup_last_success_timestamp_seconds'
+        values: "60+0x10"
+      - series: 'agtp_postgres_backup_last_attempt_timestamp_seconds'
+        values: "60+0x10"
+      - series: 'agtp_postgres_backup_last_attempt_success'
+        values: "1+0x10"
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: SupportTicketPostgresBackupOverdue
+        exp_alerts: []
+
+  - interval: 1m
+    input_series:
+      - series: 'agtp_postgres_backup_last_success_timestamp_seconds'
+        values: "60+0x1500"
+      - series: 'agtp_postgres_backup_last_attempt_timestamp_seconds'
+        values: "60+0x1500"
+      - series: 'agtp_postgres_backup_last_attempt_success'
+        values: "1+0x1500"
+    alert_rule_test:
+      - eval_time: 24h10m
+        alertname: SupportTicketPostgresBackupOverdue
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+            exp_annotations:
+              summary: Support Ticket PostgreSQL backup is overdue
+              description: No successful off-host database backup has completed within the last 24 hours.
+
+  - interval: 1m
+    input_series:
+      - series: 'agtp_postgres_backup_last_success_timestamp_seconds'
+        values: "60+0x10"
+      - series: 'agtp_postgres_backup_last_attempt_timestamp_seconds'
+        values: "60+0x10"
+      - series: 'agtp_postgres_backup_last_attempt_success'
+        values: "0+0x10"
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: SupportTicketPostgresBackupFailed
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+            exp_annotations:
+              summary: Support Ticket PostgreSQL backup failed
+              description: The latest scheduled database backup failed; inspect the agtp-postgres-backup systemd journal.

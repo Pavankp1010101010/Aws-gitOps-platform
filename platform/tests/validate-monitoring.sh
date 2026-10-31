@@ -76,8 +76,20 @@ grep -q '^kind: PrometheusRule$' "$gitops_manifest" || {
   echo "The application and host alert rules are missing." >&2
   exit 1
 }
+grep -q 'SupportTicketPostgresBackupOverdue' "$gitops_manifest" || {
+  echo "The PostgreSQL backup freshness alert is missing." >&2
+  exit 1
+}
 grep -q 'path: /metrics' "$gitops_manifest" || {
   echo "The ServiceMonitor must scrape the application metrics endpoint." >&2
+  exit 1
+}
+grep -Fq -- '--collector.textfile.directory=/var/lib/node_exporter/textfile_collector' "$chart_manifest" || {
+  echo "Node exporter must collect host-side backup status metrics." >&2
+  exit 1
+}
+grep -Fq '/var/lib/node_exporter/textfile_collector' "$chart_manifest" || {
+  echo "Node exporter must mount the host backup metrics directory." >&2
   exit 1
 }
 grep -q 'grafana_dashboard: "1"' "$gitops_manifest" || {
@@ -85,4 +97,4 @@ grep -q 'grafana_dashboard: "1"' "$gitops_manifest" || {
   exit 1
 }
 
-echo "Monitoring chart and GitOps output passed private-access, bounded-retention, secret-reference, and scrape checks."
+echo "Monitoring chart and GitOps output passed private-access, bounded-retention, secret-reference, scrape, and backup-metric checks."

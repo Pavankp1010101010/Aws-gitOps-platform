@@ -31,7 +31,7 @@ See [scan policy](../delivery/scan-policy.md). These fixtures do not install vul
 - ECR private image pull after credential refresh.
 - Controlled failed-release recovery.
 - Prometheus rule tests and real notification delivery.
-- k6 request-rate, latency, and error measurements.
+- `load-test.js` uses k6 to create 100 synthetic tickets and run an even list/detail mix at 5 requests/second for five minutes. It enforces the approved p95/error/request-count targets and refuses non-loopback endpoints. The 100 synthetic records remain in the database because the API deliberately has no delete operation.
 - Isolated PostgreSQL restore verification.
 - Host rebuild and post-cleanup resource checks.
 

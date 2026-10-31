@@ -60,7 +60,7 @@ Do not run a real `plan` or `apply` merely because mock tests passed. Account au
 - IMDSv2 and hop limit 1. These do not establish pod-level IAM isolation.
 - Systems Manager instance permissions. The selected Ubuntu AMI must have a working SSM agent; no install script or agent verification is claimed in this stage.
 - One immutable-tag ECR repository, encrypted storage, untagged-image lifecycle only.
-- Separate encrypted/versioned private S3 backups. No automatic backup expiry; incomplete multipart uploads abort after seven days.
+- Separate encrypted/versioned private S3 backups. Objects under `postgres/automated/` expire after seven days; noncurrent versions are removed one day after expiration. Other PostgreSQL backup prefixes are not covered. Incomplete multipart uploads abort after seven days.
 - Exact immutable owner/repository-ID and main-branch GitHub OIDC trust for image publication, not provisioning. ECR publishing and digest-read permissions are scoped to the project repository.
 - Account-wide monthly USD budget notifications, SNS email subscription, EC2 status-check alarm.
 - No EKS, RDS, AWS load balancer, NAT Gateway, Elastic IP, or private interface endpoint.
