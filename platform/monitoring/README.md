@@ -14,6 +14,7 @@ Status: implementation in progress; the monitoring stack and host notification b
 - Grafana and Prometheus stay private; Grafana uses a ClusterIP Service and an out-of-band admin Secret.
 - Alertmanager sends firing and resolved notifications to a host-side authenticated SNS bridge. The bridge binds only to the K3s host-side address and uses the EC2 role; Alertmanager receives only a generated bearer-token Secret, never AWS credentials.
 - `install-sns-webhook.sh` generates the Grafana password and bridge token on the host and creates their Kubernetes Secrets without displaying the values. Run it through the approved SSM path after the code is merged and the narrowly scoped SNS permission is applied.
+- The installer uses AWS's official AWS CLI v2 installer when needed; that installer verifies the downloaded CLI package signature.
 
 The bridge publishes to the existing host-alert SNS topic. Its topic ARN is configuration, while the confirmed email endpoint remains outside the repository. The notification destination is therefore selected, but receipt of a controlled firing/resolved pair still requires operator confirmation.
 
