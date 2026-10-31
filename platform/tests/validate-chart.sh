@@ -35,6 +35,10 @@ grep -A 1 'argocd.argoproj.io/hook: Sync' "$manifest" |
   echo "Database migrations must run after the database at sync wave 0." >&2
   exit 1
 }
+grep -q 'argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded,HookFailed' "$manifest" || {
+  echo "Completed or failed migration hooks must be removed so future syncs can proceed." >&2
+  exit 1
+}
 awk '
   /^kind: / { is_deployment = ($0 == "kind: Deployment") }
   is_deployment && /argocd.argoproj.io\/sync-wave: "2"/ { found = 1 }
@@ -52,4 +56,4 @@ grep -q '@sha256:' "$manifest" || {
   exit 1
 }
 
-echo "Helm output passed private-service, secret-reference, migration-order, PVC-retention, and image-digest checks."
+echo "Helm output passed private-service, secret-reference, migration ordering and cleanup, PVC-retention, and image-digest checks."
