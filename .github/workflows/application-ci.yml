@@ -90,6 +90,8 @@ jobs:
             "$RUNNER_TEMP/monitoring-chart-rendered.yaml" \
             "$RUNNER_TEMP/monitoring-gitops-rendered.yaml"
           bash -n platform/monitoring/install-sns-webhook.sh
+          bash -n platform/backup/*.sh
+          node --check platform/tests/load-test.js
           prometheus_version="3.5.0"
           prometheus_archive="prometheus-${prometheus_version}.linux-amd64.tar.gz"
           prometheus_url="https://github.com/prometheus/prometheus/releases/download/v${prometheus_version}"

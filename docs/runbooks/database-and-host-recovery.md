@@ -2,12 +2,14 @@
 
 [Project overview](../../README.md) | [Validation](../08-validation-and-evidence.md)
 
-Status: planned procedure. No restore or rebuild has been performed.
+Status: backup implementation is being validated. No isolated restore or host rebuild has been performed.
 
 ## Database restore prerequisites
 
 - A completed, readable backup exists outside the EC2 host.
 - Backup timestamp, PostgreSQL version, format, and integrity metadata are known.
+- The host-side systemd timer runs daily at 02:15 UTC with up to 15 minutes of jitter; S3 lifecycle expires current PostgreSQL backup objects after seven days.
+- Backup failures and a missing/overdue success timestamp are surfaced through node-exporter textfile metrics and Alertmanager.
 - Restore identity has necessary S3 and decryption permissions.
 - A separate isolated restore database and storage are available.
 - Credentials can be re-initialized securely.

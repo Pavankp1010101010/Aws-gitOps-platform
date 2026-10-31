@@ -173,4 +173,17 @@ resource "aws_s3_bucket_lifecycle_configuration" "backups" {
       days_after_initiation = 7
     }
   }
+  rule {
+    id     = "expire-automated-postgres-backups"
+    status = "Enabled"
+    filter {
+      prefix = "postgres/automated/"
+    }
+    expiration {
+      days = 7
+    }
+    noncurrent_version_expiration {
+      noncurrent_days = 1
+    }
+  }
 }
