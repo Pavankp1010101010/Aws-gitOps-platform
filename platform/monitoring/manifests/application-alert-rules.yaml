@@ -40,3 +40,19 @@ spec:
           annotations:
             summary: Kubernetes host root filesystem is low on space
             description: Less than fifteen percent of the host root filesystem remains available.
+        - alert: SupportTicketPostgresBackupFailed
+          expr: agtp_postgres_backup_last_attempt_timestamp_seconds > 0 and agtp_postgres_backup_last_attempt_success == 0
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: Support Ticket PostgreSQL backup failed
+            description: The latest scheduled database backup failed; inspect the agtp-postgres-backup systemd journal.
+        - alert: SupportTicketPostgresBackupOverdue
+          expr: absent(agtp_postgres_backup_last_success_timestamp_seconds) or agtp_postgres_backup_last_success_timestamp_seconds == 0 or (time() - agtp_postgres_backup_last_success_timestamp_seconds) > 86400
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: Support Ticket PostgreSQL backup is overdue
+            description: No successful off-host database backup has completed within the last 24 hours.

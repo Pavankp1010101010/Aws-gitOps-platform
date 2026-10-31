@@ -11,6 +11,7 @@ Status: the core stack and notification acceptance checks are verified; sustaine
 - Prometheus retains three days of metrics, bounded to 3,500 MB, with a 5 Gi local-path claim. Prometheus, Alertmanager, Grafana, and exporter resources have explicit requests and limits.
 - K3s-incompatible control-plane scrapes are disabled. The application ServiceMonitor scrapes `/metrics`; alert rules cover application availability, server errors, p95 latency, and low host disk space.
 - The low-disk alert has a `promtool` rule test using synthetic healthy and low-space series; it does not fill or modify the live host filesystem.
+- Stage 08 adds PostgreSQL backup freshness and failure alerts using node-exporter textfile metrics from the host-side systemd service; backup containers do not receive EC2 role credentials.
 - Application and host dashboards are checked in. The chart supplies workload dashboards.
 - Grafana and Prometheus stay private; Grafana uses a ClusterIP Service and an out-of-band admin Secret.
 - Alertmanager sends firing and resolved notifications to a host-side authenticated SNS bridge. The bridge binds only to the K3s host-side address and uses the EC2 role; Alertmanager receives only a generated bearer-token Secret, never AWS credentials.

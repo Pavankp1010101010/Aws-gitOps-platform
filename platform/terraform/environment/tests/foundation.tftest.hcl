@@ -50,6 +50,19 @@ run "restricted_foundation_plan" {
     error_message = "Backups must block all public access."
   }
   assert {
+    condition = one([
+      for rule in aws_s3_bucket_lifecycle_configuration.backups.rule : rule
+      if rule.id == "expire-automated-postgres-backups"
+      ]).filter[0].prefix == "postgres/automated/" && one([
+      for rule in aws_s3_bucket_lifecycle_configuration.backups.rule : rule
+      if rule.id == "expire-automated-postgres-backups"
+      ]).expiration[0].days == 7 && one([
+      for rule in aws_s3_bucket_lifecycle_configuration.backups.rule : rule
+      if rule.id == "expire-automated-postgres-backups"
+    ]).noncurrent_version_expiration[0].noncurrent_days == 1
+    error_message = "Automated backups under postgres/automated/ must expire after seven days without affecting other prefixes."
+  }
+  assert {
     condition     = length(aws_iam_openid_connect_provider.github) == 0
     error_message = "A shared OIDC provider must not be recreated by default."
   }

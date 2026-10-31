@@ -2,7 +2,7 @@
 
 [Platform overview](../README.md)
 
-Status: Stage 05 bootstrap and Stage 06 end-to-end GitOps delivery are complete. The Stage 06 Helm chart is synced and Healthy in Argo CD; the private app and PostgreSQL are Running with a Bound 4 Gi PVC. API CRUD smoke, persistence across app-pod replacement, and the digest-pinned image-publication PR flow passed. Stage 07 monitoring manifests are being implemented and are not deployed yet.
+Status: Stages 05-07 are complete. The application and PostgreSQL are healthy through Argo CD, and the private API smoke and monitoring/notification checks passed. Stage 08 recovery work is in progress; the scheduled host-side backup implementation is in [platform/backup](../backup/README.md).
 
 ## Intended contents
 
@@ -13,7 +13,7 @@ Status: Stage 05 bootstrap and Stage 06 end-to-end GitOps delivery are complete.
 - Readiness/liveness checks and measured resource requests/limits.
 - PostgreSQL StatefulSet with persistent storage retained from automated pruning.
 - Argo Sync-wave migration Job using the application's checksum-verified migration runner (database wave 0, migration wave 1, application wave 2).
-- Backup CronJob and explicit backup success/failure reporting.
+- Host-side systemd backup timer with explicit success/failure metrics; it uses the host instance role without passing AWS credentials to pods.
 - Namespace, service-account, and RBAC configuration.
 
 ## Design constraints
