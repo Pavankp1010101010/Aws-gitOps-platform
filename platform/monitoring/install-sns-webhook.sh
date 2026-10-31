@@ -14,8 +14,22 @@ token_file="/etc/agtp/sns-webhook-token"
 grafana_password_file="/etc/agtp/grafana-admin-password"
 
 export DEBIAN_FRONTEND=noninteractive
-apt-get update
-apt-get install --yes --no-install-recommends awscli
+if ! command -v aws >/dev/null 2>&1 || ! aws --version 2>&1 | grep -q '^aws-cli/2\.'; then
+  apt-get update
+  apt-get install --yes --no-install-recommends gnupg unzip
+  aws_cli_installer="$(mktemp)"
+  trap 'rm -f -- "$aws_cli_installer"' EXIT
+  curl --fail --location --silent --show-error \
+    https://awscli.amazonaws.com/v2/install.sh --output "$aws_cli_installer"
+  bash "$aws_cli_installer" --system
+  rm -f -- "$aws_cli_installer"
+  trap - EXIT
+fi
+
+if ! aws --version 2>&1 | grep -q '^aws-cli/2\.'; then
+  echo "AWS CLI v2 is required for SNS publishing." >&2
+  exit 1
+fi
 
 if ! getent group "$user" >/dev/null; then
   groupadd --system "$user"
