@@ -8,7 +8,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/Pavankp1010101010/Aws-gitOps-platform.git
+    repoURL: __GITHUB_REPOSITORY_URL__
     targetRevision: main
     path: platform/kubernetes/charts/support-ticket
     helm:

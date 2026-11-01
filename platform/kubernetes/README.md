@@ -2,7 +2,7 @@
 
 [Platform overview](../README.md)
 
-Status: Stages 05-08 are complete. The application and PostgreSQL are healthy through Argo CD after the approved host rebuild and off-host restore; the private readiness endpoint returned HTTP 200 with 104 tickets and 3 comments. The failed-release convergence target miss remains documented. The scheduled host-side backup implementation is in [platform/backup](../backup/README.md).
+The repository contains Kubernetes desired state and Helm configuration; the AWS host used for previous verification has been retired. See the [deployment guide](../../prerequisites/README.md) before deploying a new environment. The scheduled host-side backup implementation is in [platform/backup](../backup/README.md).
 
 ## Intended contents
 
@@ -31,4 +31,4 @@ Status: Stages 05-08 are complete. The application and PostgreSQL are healthy th
 
 Stateful resources and backup retention must have deliberate deletion behavior. Automated pruning must not accidentally erase the only usable database or backup.
 
-The chart expects the `support-ticket-db` Secret (key `password`) to be provisioned in the application namespace out of band. Do not commit the generated password or render a Kubernetes Secret from Helm values. Create it on the private host through the approved SSM path before the first Argo sync.
+The chart expects the `support-ticket-db` Secret (key `password`) to be provisioned in the application namespace out of band. Do not commit the generated password or render a Kubernetes Secret from Helm values. Create it on the private host through an authenticated SSM session before the first Argo sync.

@@ -21,11 +21,11 @@ Grafana dashboards do not themselves establish an alert delivery path.
 | Application | Request rate, error ratio, p95 latency, running version |
 | Workloads | Ready replicas, restarts, pending pods, CPU/memory (provided by the pinned chart) |
 | Host | CPU, memory, filesystem space, disk activity |
-| Backups | Last successful backup timestamp and job failures (planned for Stage 08) |
+| Backups | Last successful backup timestamp and job failures |
 
 Request latency must be instrumented with suitable histogram buckets. Avoid high-cardinality labels such as ticket IDs or raw request URLs.
 
-## Planned alerts and verification
+## Alerts and verification
 
 | Alert | Test | Expected evidence |
 |---|---|---|
@@ -33,7 +33,7 @@ Request latency must be instrumented with suitable histogram buckets. Avoid high
 | Sustained API errors | Generate a controlled error condition | Error-rate graph and notification |
 | Repeated restarts | Trigger a test-only crash scenario | Restart counter and notification |
 | Low disk space | Test alert rule safely using synthetic rule input | Rule-test result; do not fill the live disk |
-| Backup failure or overdue backup | Force a safe backup failure or simulate stale timestamp | Notification with actionable recovery link (Stage 08) |
+| Backup failure or overdue backup | Force a safe backup failure or simulate stale timestamp | Notification with actionable recovery guidance |
 | EC2 status-check failure | Validate CloudWatch/SNS wiring using supported alarm test methods | External notification path evidence |
 
 Set numeric thresholds, evaluation windows, and recovery behavior before tests. Record actual detection times in the [validation record](08-validation-and-evidence.md).
@@ -55,4 +55,4 @@ Set numeric thresholds, evaluation windows, and recovery behavior before tests. 
 
 ## Notification destination
 
-The existing host-alert SNS topic is the selected destination. A small host-side authenticated webhook bridge publishes to SNS using the EC2 role, with `sns:Publish` scoped to that topic. Alertmanager receives only an out-of-band bearer token, not AWS credentials. Keep the token and Grafana password outside Git, and confirm delivery of both firing and resolved notifications during acceptance.
+The host-alert SNS topic is the notification destination. A small host-side authenticated webhook bridge publishes to SNS using the EC2 role, with `sns:Publish` scoped to that topic. Alertmanager receives only an out-of-band bearer token, not AWS credentials. Keep the token and Grafana password outside Git, and confirm delivery of both firing and resolved notifications during deployment acceptance.

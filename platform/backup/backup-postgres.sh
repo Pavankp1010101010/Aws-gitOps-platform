@@ -91,7 +91,7 @@ if [[ ! "${BACKUP_BUCKET:-}" =~ ^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$ ]]; then
   exit 1
 fi
 
-export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
+export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-__AWS_REGION__}"
 export KUBECONFIG="${KUBECONFIG:-/etc/rancher/k3s/k3s.yaml}"
 mkdir -p -- "$work_dir"
 chmod 0700 "$work_dir"

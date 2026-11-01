@@ -1,126 +1,146 @@
 # Architecture and flows
 
-[Back to project overview](../README.md)
+[Project overview](../README.md) | [Deployment guide](../prerequisites/README.md)
 
-These are intended flows. Implementation and verification are pending.
+These diagrams describe the current repository configuration. They are not a claim that an AWS environment is presently deployed.
 
-## 1. Component architecture
+## Platform components and trust boundaries
 
-```text
-Developer -> GitHub -> GitHub Actions -> ECR
-                |                         |
-                | approved configuration  | image pull
-                v                         v
-AWS VPC / public subnet
-+--------------------------------------------------------+
-| EC2 instance / single-node K3s                          |
-|                                                        |
-| Argo CD ----> Helm-managed application/platform objects |
-|                                                        |
-| Traefik -> Web UI/API -> PostgreSQL -> persistent disk  |
-|                |                                       |
-|                v                                       |
-| Exported metrics -> Prometheus -> Grafana               |
-|                          |                             |
-|                          v                             |
-|                    Alertmanager -> notification target |
-|                                                        |
-| Scheduled database backup ------------------------+    |
-+---------------------------------------------------|----+
-                                                    v
-                                               S3 backups
+```mermaid
+flowchart LR
+    Dev[Developer] -->|reviewed source changes| GitHub[Public GitHub repository]
+    GitHub -->|CI and release workflows| Actions[GitHub Actions]
+    Actions -->|GitHub OIDC, short-lived role| Publisher[IAM image-publisher role]
+    Actions -->|tested, scanned, immutable image| ECR[Amazon ECR]
+    Actions -->|propose digest update| DeployPR[GitOps deployment pull request]
+    DeployPR -->|review and merge| GitHub
 
-EC2 status checks -> CloudWatch alarm -> SNS notification
-Administrator -> Systems Manager -> restricted admin access
-Terraform -> AWS infrastructure (not application deployments)
+    subgraph AWS["AWS account and selected commercial region"]
+        subgraph VPC["Project VPC: public subnet; no inbound security-group rules"]
+            EC2[Ubuntu EC2 host]
+            subgraph K3s["Single-node K3s"]
+                Argo[Argo CD]
+                AppSvc[Application ClusterIP Service]
+                App[Support-ticket application pod]
+                DbSvc[PostgreSQL ClusterIP Service]
+                DB[PostgreSQL StatefulSet]
+                PVC[PersistentVolumeClaim]
+                Prom[Prometheus]
+                Grafana[Grafana]
+                Alertmanager[Alertmanager]
+                Bridge[SNS webhook bridge]
+                Argo -->|reconcile manifests| AppSvc
+                AppSvc --> App
+                App --> DbSvc --> DB --> PVC
+                Prom -->|scrape /metrics and exporters| App
+                Grafana -->|query| Prom
+                Prom -->|alert rules| Alertmanager -->|authenticated internal webhook| Bridge
+            end
+            EC2 --- K3s
+            EC2 -->|instance role, least privilege| Backup[S3 backup bucket]
+            EC2 -->|status checks| CW[CloudWatch alarm]
+            CW --> SNS[SNS email notification]
+            Bridge -->|instance role, scoped publish| SNS
+        end
+        ECR -->|private image pull using host role| App
+        GitHub -->|HTTPS desired state| Argo
+        SSM[AWS Systems Manager] <-->|outbound agent session| EC2
+    end
+
+    Operator[Operator workstation] -->|SSM session and local port-forward| SSM
 ```
 
-## 2. Infrastructure provisioning
+## Network and administration flow
 
-1. Bootstrap separate remote-state storage and locking.
-2. Open an infrastructure change pull request.
-3. Run formatting, validation, and an authorized Terraform plan.
-4. Review the plan before applying.
-5. Terraform creates networking, roles, ECR, backup storage, alarms, and EC2.
-6. Cloud-init configures the host, K3s, and registry credential provider.
-7. Bootstrap Argo CD with a pinned version and a root application.
-8. Configure required credentials through the documented secure setup procedure.
-9. Argo CD reconciles platform and application configuration.
-10. Run acceptance checks and record results.
+```mermaid
+flowchart TB
+    Operator[Authorized operator workstation]
+    SSMAPI[AWS Systems Manager APIs]
+    Internet[Internet gateway]
 
-The initial Terraform apply may be an explicit operator action. Automated infrastructure applies should be introduced only after approvals and identity controls are configured.
+    subgraph AWS["AWS account"]
+        subgraph VPC["Project VPC"]
+            SG["Security group: outbound only"]
+            Host["EC2 host with public IPv4"]
+            K3s["K3s ClusterIP services"]
+            Host --> K3s
+            SG -. attached to .-> Host
+            Host -->|outbound HTTPS for SSM, packages, GitHub, ECR, and S3| Internet
+        end
+    end
 
-## 3. Application delivery
-
-```text
-Application pull request
-  -> tests and validation
-  -> review and merge
-  -> build image once
-  -> Trivy scan against documented policy
-  -> push passing artifact to ECR
-  -> open GitOps PR updating immutable image digest
-  -> review and merge GitOps PR
-  -> Argo CD reconciliation
-  -> Kubernetes readiness checks
-  -> deployment smoke test
-  -> observe metrics
+    Operator -->|authenticated session request| SSMAPI
+    SSMAPI <-->|agent-initiated outbound control channel| Host
+    Operator -.->|encrypted SSM port-forward tunnel| Host
+    Host -->|local kubectl port-forward| K3s
+    Internet -->|no direct inbound application path| SG
 ```
 
-GitHub Actions publishes artifacts and proposes configuration changes. It does not independently deploy the same Kubernetes resources as Argo CD.
+The EC2 public address supports outbound connectivity; it does not create a public application endpoint. Do not add inbound rules, NodePorts, or public load balancers to bypass the documented private access path.
 
-An explicit smoke-test mechanism and result reporting must be implemented. Argo CD reporting an application as healthy is not a substitute for testing the user-facing API.
+## User request path
 
-## 4. User request
+```mermaid
+sequenceDiagram
+    actor User as Authorized operator
+    participant Browser as Browser on workstation
+    participant SSM as Systems Manager tunnel
+    participant Host as EC2 / K3s host
+    participant Service as Application ClusterIP Service
+    participant App as Application pod
+    participant DBService as PostgreSQL ClusterIP Service
+    participant DB as PostgreSQL pod and persistent volume
 
-```text
-Browser
-  -> EC2 public endpoint, permitted web port
-  -> Traefik host ingress
-  -> frontend/API Kubernetes Service
-  -> application pod
-  -> internal PostgreSQL Service
-  -> database pod and persistent volume
+    User->>SSM: Start authenticated port-forward session
+    User->>Browser: Open the local forwarded URL
+    Browser->>SSM: HTTP request through local tunnel
+    SSM->>Host: Forward connection; no public ingress
+    Host->>Service: kubectl port-forward to application service
+    Service->>App: Route request to ready application pod
+    App->>DBService: Execute parameterized SQL query
+    DBService->>DB: Route to PostgreSQL
+    DB-->>App: Return ticket/comment data
+    App-->>Browser: JSON API response or UI assets
 ```
 
-Do not create a Kubernetes Service that unexpectedly provisions a cloud load balancer. Validate K3s ServiceLB/Traefik exposure and security-group rules explicitly.
+The application and database Kubernetes Services are `ClusterIP`. The browser UI and API are available only through the operator's private forwarding session in this baseline.
 
-Database ports are not public. Plain HTTP is acceptable only for a controlled non-sensitive demo. Do not transmit real credentials or sensitive data without HTTPS.
+## CI, image release, and GitOps
 
-## 5. Monitoring and notifications
-
-```text
-Application / node / Kubernetes exporters
-  -> Prometheus scrapes metrics
-  -> Grafana queries Prometheus
-  -> Prometheus evaluates alert rules
-  -> Alertmanager sends notifications
+```mermaid
+flowchart LR
+    PR[Application pull request] --> CI[Application CI: tests, chart checks, image scan]
+    CI -->|merge to main and successful CI| Release[Release workflow]
+    Release -->|OIDC short-lived credentials| ECR[Amazon ECR]
+    Release -->|build and scan tested commit| Image[Immutable container image]
+    Image --> ECR
+    Release -->|open/update digest-pinned change| GitOpsPR[Deployment pull request]
+    GitOpsPR -->|review, checks, merge| Main[main desired state]
+    Main -->|HTTPS repository polling| Argo[Argo CD]
+    ECR -->|pull by digest using EC2 role| K3s[K3s workload]
+    Argo -->|reconcile Helm release| K3s
+    K3s --> Smoke[Private smoke and readiness checks]
 ```
 
-CloudWatch EC2 status-check alarms supply a separate host-failure signal. They do not prove application availability; an external application probe is a later enhancement.
+Application CI for pull requests does not receive AWS credentials. GitHub Actions publishes artifacts through a repository- and branch-scoped OIDC role; Argo CD is the only component that reconciles Kubernetes desired state.
 
-## 6. Failed-release recovery
+## Monitoring, notifications, and backups
 
-```text
-Detect failure -> inspect evidence -> revert GitOps change
-  -> Argo CD applies last known good configuration
-  -> smoke test -> verify metrics -> document incident
+```mermaid
+flowchart LR
+    App[Application metrics] --> Prom[Prometheus]
+    Node[Host and Kubernetes exporters] --> Prom
+    Prom --> Grafana[Grafana dashboards]
+    Prom --> Rules[Alert rules]
+    Rules --> AM[Alertmanager]
+    AM -->|bearer-token authenticated webhook| Bridge[SNS bridge on host]
+    Bridge -->|EC2 role; scoped sns:Publish| SNS[SNS email notification]
+    Host[EC2 status checks] --> CW[CloudWatch alarm]
+    CW --> SNS
+
+    DB[PostgreSQL] -->|scheduled consistent dump| BackupJob[Host-side backup job]
+    BackupJob -->|TLS, encrypted and versioned| S3[Private S3 backup bucket]
+    S3 -->|reviewed recovery procedure| Restore[Isolated restore / host rebuild]
 ```
 
-No automatic rollback is assumed. A container rollback does not reverse database schema changes.
-
-## 7. Data and host recovery
-
-```text
-Database -> scheduled consistent backup -> S3
-
-Host failure
-  -> Terraform/bootstrapping recreates compute
-  -> secure secret initialization
-  -> Argo CD restores configuration
-  -> restore backup into isolated database
-  -> verify data and connectivity
-  -> controlled application reconnection
-```
-
-Git and Terraform cannot reconstruct unbacked-up application data.
+In-cluster monitoring cannot report failure of its only host; the separate CloudWatch status alarm is an independent host signal. Backups and recovery restore application data, not uncommitted changes or secrets.

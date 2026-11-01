@@ -4,6 +4,9 @@ coverage/
 dist/
 build/
 .cache/
+__pycache__/
+*.py[cod]
+.pytest_cache/
 *.log
 npm-debug.log*
 
@@ -28,6 +31,7 @@ npm-debug.log*
 *.tfvars
 *.tfvars.json
 backend.hcl
+prerequisites/project-config.json
 !*.tfvars.example
 crash.log
 crash.*.log

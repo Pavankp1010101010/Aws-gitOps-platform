@@ -14,7 +14,7 @@ provider "aws" {
   allowed_account_ids = [var.account_id]
   default_tags {
     tags = {
-      Project     = "aws-gitops-platform"
+      Project     = var.project_name
       Environment = "demo"
       ManagedBy   = "Terraform"
     }

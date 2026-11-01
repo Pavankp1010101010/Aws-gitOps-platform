@@ -1,6 +1,6 @@
 # Container scan policy
 
-[Delivery guide](README.md) | [Stage 03](../../stages/03-containers-and-ci.md)
+[Delivery guide](README.md) | [CI and GitOps flows](../../docs/03-architecture-and-flows.md)
 
 ## Gate
 
@@ -24,4 +24,4 @@ Any future exception requires explicit approval, finding/package IDs, rationale,
 
 The [HIGH fixture](../tests/fixtures/trivy-high.json) must return exit 1 when converted using the policy flags. The [LOW fixture](../tests/fixtures/trivy-low.json) must return exit 0. These synthetic reports do not install vulnerable dependencies and are not actual image findings.
 
-Fixture checks verify severity/exit behavior, not scanner detection accuracy. A separate actual image scan is required. Both fixtures and the actual patched-image scan passed hosted CI; see [Stage 03 evidence](../../docs/11-stage03-results.md). Passing applies to the scanned image/database snapshot, not all future builds.
+Fixture checks verify severity/exit behavior, not scanner detection accuracy. Every release candidate must also pass an actual image scan. Passing applies to the scanned image and vulnerability database snapshot, not all future builds.

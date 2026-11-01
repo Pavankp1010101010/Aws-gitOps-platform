@@ -63,8 +63,8 @@ chown root:root "$grafana_password_file"
 chmod 0600 "$grafana_password_file"
 
 cat > /etc/agtp/sns-webhook.env <<'EOF'
-AWS_DEFAULT_REGION=us-east-1
-SNS_TOPIC_ARN=arn:aws:sns:us-east-1:507720142035:agtp-demo-host-alerts
+AWS_DEFAULT_REGION=__AWS_REGION__
+SNS_TOPIC_ARN=arn:aws:sns:__AWS_REGION__:__AWS_ACCOUNT_ID__:__PROJECT_NAME__-host-alerts
 SNS_WEBHOOK_BIND_ADDRESS=10.42.0.1
 SNS_WEBHOOK_PORT=9811
 SNS_WEBHOOK_TOKEN_FILE=/etc/agtp/sns-webhook-token
