@@ -1,7 +1,5 @@
 locals {
-  github_repository_owner_id = "93963930"
-  github_repository_id       = "1438499998"
-  github_repository_subject  = "repo:${replace(var.github_repository, "/", "@${local.github_repository_owner_id}/")}@${local.github_repository_id}:ref:refs/heads/main"
+  github_repository_subject = "repo:${replace(var.github_repository, "/", "@${var.github_repository_owner_id}/")}@${var.github_repository_id}:ref:refs/heads/main"
 }
 
 resource "aws_iam_role" "host" {

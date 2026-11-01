@@ -1,5 +1,5 @@
 locals {
-  name = "agtp-demo"
+  name = var.project_name
 }
 
 resource "aws_vpc" "project" {
@@ -58,7 +58,7 @@ resource "aws_instance" "host" {
   associate_public_ip_address = true
   iam_instance_profile        = aws_iam_instance_profile.host.name
   user_data = templatefile("${path.module}/../../bootstrap/cloud-config.yaml.tftpl", {
-    bootstrap_script = base64encode(replace(file("${path.module}/../../bootstrap/bootstrap.sh"), "\r\n", "\n"))
+    bootstrap_script = base64encode(replace(replace(file("${path.module}/../../bootstrap/bootstrap.sh"), "\r\n", "\n"), "__AWS_REGION__", var.region))
     root_app         = filebase64("${path.module}/../../kubernetes/root-app.yaml")
   })
   monitoring                  = false
@@ -87,8 +87,7 @@ resource "aws_instance" "host" {
   depends_on = [
     aws_route.internet,
     aws_route_table_association.public,
-    aws_iam_role_policy_attachment.ssm,
-    aws_budgets_budget.project
+    aws_iam_role_policy_attachment.ssm
   ]
 }
 

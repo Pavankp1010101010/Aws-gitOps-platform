@@ -1,12 +1,9 @@
 # Host and cluster bootstrap
 
-[Platform overview](../README.md) | [Stage 05](../../stages/05-k3s-and-argocd.md)
+[Platform overview](../README.md) | [Architecture and flows](../../docs/03-architecture-and-flows.md) | [Prerequisites](../../prerequisites/README.md)
 
-Status: Rebuilt and verified on 2026-10-31 after the explicitly approved
-Terraform replacement. Cloud-init, K3s, encrypted secrets, Traefik, Argo CD,
-application recovery, and a no-drift plan pass. The host-rebuild runbook records
-the 20m17s recovery and verified database restore. The original ECR token's
-behavior after its full 12-hour expiry was not directly tested.
+The host bootstrap installs K3s and Argo CD on the configured EC2 instance.
+The environment is not currently deployed by the repository maintainers.
 
 ## Pinned components
 
@@ -31,8 +28,8 @@ IMDSv2, installs the K3s-packaged Traefik as a private ClusterIP Service, and
 installs the pinned Argo CD manifest. Argo CD's API/UI remains ClusterIP-only.
 The bundled Traefik v40 chart reads its Service type from
 `service.spec.type`; the bootstrap sets that exact value.
-The host runs a port-forward bound to `127.0.0.1:8443`; use Systems Manager
-port forwarding to reach it. The security group remains without inbound rules.
+The Argo CD API/UI is available through a loopback-bound host port-forward and
+Systems Manager session; the security group has no inbound rules.
 
 The root Application reads the public project repository over unauthenticated
 HTTPS and targets `platform/kubernetes/cluster`. Its initial safe test resource
@@ -56,13 +53,10 @@ upgrades/downgrades. Review logs before rerunning:
 - `systemctl status k3s agtp-argocd-port-forward`
 
 Changing EC2 user data with `user_data_replace_on_change = true` replaces the
-instance. The current host runs the application, PostgreSQL, monitoring, and
-Argo CD, and contains synthetic ticket data. Instance replacement deletes the
-local root disk and may lose the active database. Before any replacement,
-verify a fresh off-host backup and isolated restore, inspect a fresh Terraform
-plan for the exact instance/alarm changes, and obtain explicit approval. Do not
-reuse historical plans or treat a successful pod restart as proof of host
-rebuild recovery.
+instance. Instance replacement deletes the local root disk and may lose the
+active database. Before any replacement, verify a fresh off-host backup and
+isolated restore, inspect a fresh Terraform plan for the exact changes, and
+obtain explicit approval. Never reuse a saved plan from an earlier deployment.
 
 ## Operations
 
@@ -81,11 +75,11 @@ sudo KUBECONFIG=/etc/rancher/k3s/k3s.yaml kubectl -n argocd get applications
 After applying the root Application, wait for its sync and health fields to
 report `Synced` and `Healthy` before recording GitOps acceptance.
 
-The `.github/workflows/stage05-ecr-smoke.yml` workflow uses the main-branch
+The `.github/workflows/ecr-credential-smoke.yml` workflow uses the main-branch
 OIDC publisher role to build and publish an immutable private smoke image.
-The image pull and accelerated credential-provider refresh after clearing the
-K3s cache are verified in the [Stage 05 evidence](../../stages/05-k3s-and-argocd.md).
-The original token's full 12-hour expiration behavior was not directly tested.
+The smoke workflow is optional and intended for registry/credential-provider
+checks. The normal application release uses the tested-and-scanned image path
+described in the [delivery guide](../delivery/README.md).
 
 For private browser/API access, first establish a Session Manager port-forward
 to remote port 8443 (the local SSM plugin is required), then browse to

@@ -57,7 +57,7 @@ install --owner=root --group=root --mode=0644 \
 install --owner=root --group=root --mode=0644 \
   "$script_dir/agtp-postgres-backup.timer" /etc/systemd/system/agtp-postgres-backup.timer
 
-printf 'BACKUP_BUCKET=%s\nAWS_DEFAULT_REGION=us-east-1\n' "$bucket" \
+printf 'BACKUP_BUCKET=%s\nAWS_DEFAULT_REGION=__AWS_REGION__\n' "$bucket" \
   > /etc/agtp/postgres-backup.env
 chown root:root /etc/agtp/postgres-backup.env
 chmod 0600 /etc/agtp/postgres-backup.env

@@ -1,6 +1,6 @@
 # Support Ticket Tracker
 
-[Project overview](../README.md) | [Stage 02 results](../docs/10-stage02-results.md) | [Stage 03 results/blockers](../docs/11-stage03-results.md)
+[Project overview](../README.md) | [Validation guide](../docs/08-validation-and-evidence.md)
 
 A small private-demo application that replaces scattered support messages with a persistent ticket list, priority/status tracking, assignee labels, and timestamped comments.
 
@@ -37,7 +37,7 @@ application/
 `-- package-lock.json
 ```
 
-Container startup is implemented in Stage 03. The image passed local and hosted HIGH/CRITICAL scans after pinning OpenSSL runtime libraries to 3.5.9-r0. Required-check failure/recovery was verified in Stage 03; see the [validation evidence](../docs/11-stage03-results.md). Terraform, Kubernetes, monitoring deployment, and GitOps implementation belong in the separate [platform directory](../platform/README.md).
+The container image is built as a non-root user and is checked by the repository's CI image-scanning policy. Terraform, Kubernetes, monitoring, and GitOps configuration live in the separate [platform directory](../platform/README.md).
 
 ## Prerequisites and isolation
 
@@ -80,7 +80,7 @@ docker --context desktop-linux compose stop db
 
 This retains the project container/network and named volume so data survives. Do not run `down -v`, delete the volume, or reset credentials without an explicit data-deletion decision. This project never needs a global Docker prune.
 
-## Containerized local startup (Stage 03)
+## Containerized local startup
 
 Use this instead of `npm.cmd start`, not alongside it: both use loopback port 3100. Generate `.env` first only if it does not exist.
 
@@ -118,7 +118,7 @@ The runtime deliberately has no npm. Run `node scripts/migrate.js` for container
 
 Changing the password in `.env` does not update an already initialized PostgreSQL volume. Perform a deliberate credential rotation rather than deleting data to fix a mismatch.
 
-## Private Kubernetes deployment (Stage 06)
+## Private Kubernetes deployment
 
 The support-ticket application and PostgreSQL are deployed in the `support-ticket` namespace through Argo CD. Both Services are `ClusterIP`; no public ingress or load balancer is configured. Do not expose this unauthenticated demo to the public internet.
 
@@ -160,7 +160,7 @@ Migration 002 adds an index without changing the existing API/schema contract: a
 
 ## Metrics
 
-HTTP request count and duration histogram use bounded method/route/status labels. Route templates, not raw ticket IDs or query strings, are recorded. Node process metrics are exposed too. Prometheus/Grafana deployment remains a later stage.
+HTTP request count and duration histogram use bounded method/route/status labels. Route templates, not raw ticket IDs or query strings, are recorded. Node process metrics are exposed too. Prometheus and Grafana configuration lives in [platform monitoring](../platform/monitoring/README.md).
 
 ## Troubleshooting
 
@@ -174,4 +174,4 @@ HTTP request count and duration histogram use bounded method/route/status labels
 
 ## Verification
 
-See the [Stage 02 results](../docs/10-stage02-results.md) and [Stage 03 results/blockers](../docs/11-stage03-results.md). Health/metrics endpoints alone do not prove cloud reliability, backups, high availability, or recovery targets.
+Run `npm run check` and `npm test` for local verification. Health/metrics endpoints alone do not prove cloud reliability, backups, high availability, or recovery targets.

@@ -1,79 +1,46 @@
 # Runbook: database and host recovery
 
-[Project overview](../../README.md) | [Validation](../08-validation-and-evidence.md)
+[Project overview](../../README.md) | [Backup guide](../../platform/backup/README.md) | [Architecture](../03-architecture-and-flows.md)
 
-Status: scheduled backup, scoped retention, backup alerts, isolated restore, and the explicitly approved host rebuild have been verified. The rebuilt host is healthy; a fresh Terraform plan reports no changes.
+Use synthetic data for recovery exercises. Verify the AWS account, region, instance, bucket, and database before running operational commands. Destructive recovery or infrastructure changes require a fresh reviewed plan and explicit approval.
 
 ## Database restore prerequisites
 
-- A completed, readable backup exists outside the EC2 host. The latest verified object was `postgres/automated/20261031T110153Z.dump` (8,702 bytes, AES256); the earlier `postgres/automated/20261031T090505Z.dump` was also restored successfully.
-- Backup timestamp, PostgreSQL version, format, and integrity metadata are known.
-- The host-side systemd timer runs daily at 02:15 UTC with up to 15 minutes of jitter; S3 lifecycle expires current PostgreSQL backup objects after seven days.
-- Backup failures and a missing/overdue success timestamp are surfaced through node-exporter textfile metrics and Alertmanager.
-- Restore identity has necessary S3 and decryption permissions.
-- A separate isolated restore database and storage are available. The latest backup restored 104 tickets and 3 comments; the earlier restore verified 4 tickets, 3 comments, and 2 migrations. Temporary databases and host dumps were removed afterward.
-- Credentials can be re-initialized securely.
+- A completed, readable backup exists outside the EC2 host.
+- The backup timestamp, PostgreSQL version, format, and integrity metadata are known.
+- The restore identity has the required access to the selected backup.
+- A separate isolated restore database and storage are available.
+- Application credentials can be initialized securely and are not retrieved from Git.
 
 ## Restore drill
 
-1. Record restore start time and selected backup recovery point.
-2. Download/access the selected backup securely.
-3. Verify its integrity and compatibility.
-4. Restore to a new isolated database, never over the active database for a drill.
-5. Verify schema, expected ticket records, comments, and representative queries.
-6. Point an isolated application instance to the restored database.
-7. Create a synthetic ticket, add a comment, and verify status updates and reopening.
-8. Record elapsed time, verified data, and potential data-loss window.
-9. Remove only the explicitly identified temporary drill resources.
+1. Record the restore start time and selected backup recovery point.
+2. Access the selected backup securely and verify its integrity and compatibility.
+3. Restore it to a new isolated database; never overwrite the active database during a drill.
+4. Verify schema migrations, expected ticket records, comments, and representative queries.
+5. Point an isolated application instance to the restored database.
+6. Create a synthetic ticket, add a comment, and verify status updates and reopening.
+7. Record elapsed time, verified data, and the potential data-loss window.
+8. Remove only the explicitly identified temporary drill resources.
 
 For a real incident, approve and document application cutover separately. Avoid allowing writes to old and restored databases simultaneously.
 
-## Verified backup and restore evidence - 2026-10-31
-
-- The host systemd timer is enabled and active. The successful backup attempt was recorded in the textfile metrics.
-- Seven-day current-object expiry and one-day noncurrent-version cleanup apply only to `postgres/automated/`; the pre-existing legacy prefix was excluded.
-- The isolated restore command completed in one second according to SSM. This measures the command execution, not a full host rebuild or application cutover.
-- At 10:35:25Z, the latest verified recovery point (09:05:07Z) was 90.3 minutes old. No data-loss incident occurred; this is the observed potential recovery-point age at that check.
-- At 11:05:25Z, the latest backup was restored into an isolated database and matched the live database's 104-ticket/3-comment counts. The temporary database was removed. At 11:09:47Z, the backup recovery point was 7m54s old.
-- At 11:05:53Z, the PostgreSQL pod was replaced; readiness returned at 11:06:01Z. Ticket and comment counts remained 104 and 3, and the application readiness endpoint returned HTTP 200.
-- Backup-failed and backup-overdue alerts fired and resolved in Prometheus/Alertmanager, and the operator confirmed receipt.
-
-## Failed-release recovery evidence - 2026-10-31
-
-The test revision referenced a nonexistent image digest. The migration hook pod entered `ImagePullBackOff` and never ran; the application Deployment stayed ready on the known-good digest and PostgreSQL was not changed. The failed Job disappeared after its active deadline, but Argo retried the failed operation. After the revert, the operator terminated the stale operation using the supported Argo CD command, then synced auto-tracked `main` without an explicit revision. That sync succeeded at 11:54:11Z on `5e78eec81ff57056978d823257b521561044b286`. The app and PostgreSQL pods were Ready, `/health/ready` returned HTTP 200, no migration Job remained, and the database contained 104 tickets and 3 comments. The previously measured reverted-revision convergence took 11m30s after revert merge and 14m23s after commit creation, exceeding the 10-minute operational recovery window. No API outage was observed; service restoration was not needed.
-
-For a future stuck operation, first confirm the current desired revision and image digest, then use the supported Argo CD `app terminate-op` command rather than directly patching the Application operation field. Inspect the migration Job and pod before removing only that failed hook; never delete or restart the application database as part of this cleanup. Re-sync the current branch and verify the Argo operation, application readiness, and database state.
-
-PR #28 adds the Argo CD `HookFailed` delete policy to the migration Job and is
-merged and synced at `7fbced8d6bf3adc1cde44d28c633d7082335c9f3`. In the
-controlled invalid-digest exercise, the failed hook Job was removed after its
-active deadline; Argo nevertheless retried the operation, so hook cleanup alone
-did not resolve the stale operation. The supported termination and sync steps
-above were required to complete reconciliation.
-
 ## Host rebuild
 
-1. Determine whether the original host/data can be recovered without replacement.
-2. Preserve relevant evidence; do not destroy the only data copy.
-3. Review Terraform state and the intended replacement plan.
+1. Determine whether the original host and data can be recovered without replacement.
+2. Preserve any required data and evidence; do not destroy the only data copy.
+3. Review Terraform state and a fresh plan for the exact replacement.
 4. Recreate compute and run the pinned bootstrap process.
-5. Re-initialize secrets and validate ECR/Git access.
+5. Re-initialize secrets securely and validate ECR and Git access.
 6. Let Argo CD recreate platform and application configuration.
-7. Follow the isolated database restore and validation steps above.
-8. Perform a controlled cutover and verify ingress/DNS if the address changed.
+7. Restore the selected backup into the isolated PostgreSQL workload.
+8. Perform a controlled cutover and verify application readiness.
 9. Verify dashboards, notifications, scheduled backups, and host alarms.
-10. Record total recovery time and any manual steps.
-
-## Verified host rebuild - 2026-10-31
-
-- The user approved the fresh Terraform plan (1 add, 1 change, 1 destroy). It replaced `i-0cf08e27462505e8c` with `i-01c6edc2d87a8be2d`, updated the host alarm, and deleted the old 30-GiB root disk. The subsequent Terraform plan reported no changes.
-- CloudTrail recorded termination of the old host at 12:06:53Z; the replacement launched at 12:07:36Z. Pinned cloud-init completed, K3s became Ready, and the Argo root Application was applied after creating the application database Secret out of band. Monitoring Secrets were regenerated without logging their values.
-- The latest verified pre-rebuild backup, `postgres/automated/20261031T110153Z.dump` (8,702 bytes, AES256), was restored to the new PostgreSQL pod. Use `pg_restore` inside the PostgreSQL pod: the minimal host does not install the PostgreSQL client tools. The application returned HTTP 200 from `/health/ready` at 12:27:10Z with 104 tickets and 3 comments. From the first destructive EC2 change to verified readiness was 20m17s, within the 60-minute target.
-- The backup timer and monitoring bridge are active. A post-rebuild backup, `postgres/automated/20261031T122359Z.dump` (8,730 bytes, AES256), uploaded successfully at 12:24:01Z.
+10. Record total recovery time and manual steps.
 
 ## Limitations
 
-- Single-host failure causes downtime.
+- A single-host failure causes downtime.
 - A local persistent volume does not survive every host/disk replacement scenario.
 - Git does not contain application data or bootstrap secrets.
 - Scheduled backups permit loss of changes after the selected recovery point.

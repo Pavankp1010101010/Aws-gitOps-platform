@@ -1,62 +1,39 @@
-# Security and access plan
+# Security and access
 
-[Back to project overview](../README.md)
+[Project overview](../README.md) | [Architecture and flows](03-architecture-and-flows.md) | [Deployment guide](../prerequisites/README.md)
 
-This is a design baseline, not a security certification or implemented control set.
+This is a private demonstration platform, not a production security certification. Review controls and residual risks for the account and workload before deployment.
 
-## Identity
+## Identity and credentials
 
-- Use short-lived authenticated AWS access on the workstation.
-- Use GitHub Actions OIDC with narrowly scoped trust conditions, including the permitted repository and branch/environment.
-- Separate image-publication permissions from infrastructure-provisioning permissions.
-- Give the EC2 role only the ECR, S3, and Systems Manager permissions required.
-- Require IMDSv2 and restrict workload access to instance metadata where feasible; verify rather than assuming this gives pod-level isolation.
-- Use a narrowly scoped GitHub App or equivalent short-lived identity for deployment-update PRs.
-- Use minimal read-only credentials for Argo CD if the configuration repository is private.
+- Use short-lived AWS CLI authentication for operators; do not commit access keys or shared profiles.
+- GitHub Actions uses OIDC and a repository- and branch-scoped image-publisher role. Application pull-request CI receives no AWS credentials.
+- Keep image publication and infrastructure administration as separate trust/permission paths.
+- Require IMDSv2 on EC2. This does not provide pod-level IAM isolation; treat all workloads on the host as part of the host trust boundary.
+- Store Terraform state, generated inputs, application secrets, Grafana credentials, and webhook tokens as sensitive data. Keep them out of source, logs, images, and pull-request output.
+- Provision the PostgreSQL Secret out of band through an authenticated Systems Manager session.
+- Rotate credentials after a suspected disclosure; removing a secret from the latest revision does not erase Git history.
 
 ## Network exposure
 
-- Restrict the security group to the explicitly intended application web ports.
-- Prefer Systems Manager for host management instead of public SSH.
-- Do not publicly expose the Kubernetes API, PostgreSQL, Argo CD, Grafana, Prometheus, or Alertmanager.
-- Keep database connectivity internal to the cluster.
-- Use port forwarding through the restricted management path for admin interfaces.
-- Validate both security-group rules and actual listening ports.
-- Add HTTPS before handling authenticated sessions or sensitive data over public access.
+- The EC2 security group has no inbound rules. The public IPv4 exists for outbound connectivity only.
+- Administrators use Systems Manager and local port forwarding; do not add public SSH, Kubernetes API, NodePort, or load-balancer access.
+- Application, PostgreSQL, Argo CD, Prometheus, Grafana, and Alertmanager Services are private to the cluster.
+- Systems Manager requires an active agent, instance permissions, workstation/session prerequisites, and outbound connectivity.
+- The application has no user authentication and is intended only for synthetic demonstration data. Do not expose it to the public internet or use it for sensitive data.
 
-Systems Manager requires the agent, instance permissions, workstation/session prerequisites, and outbound connectivity. No private VPC endpoints are assumed in this cost-conscious public-subnet design.
+## Software supply chain
 
-## Secrets
+- Deploy application images by immutable digest and retain the source commit reference.
+- Pin infrastructure providers, chart versions, bootstrap artifacts, and GitHub Actions revisions.
+- The container scan blocks HIGH and CRITICAL findings. A passing scan is not a security guarantee and applies only to the scanned artifact/database snapshot.
+- Require review and checks for GitOps changes. Verify branch-protection enforcement in the target GitHub repository rather than assuming it is enabled.
+- Do not give privileged credentials to untrusted pull-request code.
 
-- No secrets in Git, image layers, workflow output, Terraform inputs committed to source, or cloud-init user data.
-- Initially inject application secrets through a documented secure operator procedure.
-- Enable Kubernetes secret encryption at rest during cluster setup.
-- Restrict Kubernetes RBAC and access to host disks, backups, and snapshots.
-- Avoid placing generated application passwords in Terraform state.
-- Protect Terraform state as sensitive even when configuration files contain no passwords.
-- Rotate credentials after a suspected disclosure; deletion from the latest Git revision alone is insufficient.
+## Data protection and recovery
 
-The secure secret initialization procedure is a deliberate manual bootstrap prerequisite, not a claim of fully unattended recovery.
-
-## Artifact and change controls
-
-- Pin application deployments to image digests.
-- Pin infrastructure dependencies, charts, bootstrap downloads, and CI actions appropriately.
-- Define Trivy failure severity, fixability handling, and time-bounded documented exceptions.
-- Fail tests and scans explicitly.
-- Require reviews/checks where the chosen GitHub plan supports them; verify enforcement rather than assuming availability.
-- Never expose privileged AWS credentials to untrusted pull-request code.
-
-## Data and backups
-
-- Use synthetic demonstration data only.
-- Encrypt EBS and S3 storage.
-- Block public access to state and backup buckets.
-- Use distinct storage and lifecycle policies for state and database backups.
-- Use a backup process that produces consistent PostgreSQL backups and validates uploads.
-- Test restore access separately from backup-write access.
-- Do not expose dump contents or secret-bearing configuration in portfolio screenshots.
-
-## Recovery considerations
-
-Document which identity retrieves backups, how application credentials are re-initialized, and which resources are intentionally retained. Test these steps before claiming recoverability.
+- Use synthetic ticket data for demonstrations.
+- Encrypt EBS and S3 storage; block public access to Terraform state and backup buckets.
+- Keep application and database services internal, and retain the backup/state deletion safeguards.
+- Test backup restoration into an isolated database. Do not overwrite the active database during a recovery drill.
+- Review the [backup guide](../platform/backup/README.md) and [recovery runbooks](runbooks/) before destructive maintenance.

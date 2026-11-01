@@ -2,7 +2,7 @@
 
 [Back to project overview](../README.md)
 
-Status (2026-10-31): Stages 04-08 are deployed and verified on the rebuilt m7i-flex.large host. The approved rebuild restored the encrypted backup in 20m17s; the post-rebuild backup timer and monitoring are healthy. The failed-release exercise preserved service but required stale-operation termination and exceeded the 10-minute convergence target. Environment retirement remains approval-gated.
+This repository contains the infrastructure and platform configuration for a fresh deployment. No AWS resources are currently deployed by the repository maintainers.
 
 ## Navigation
 

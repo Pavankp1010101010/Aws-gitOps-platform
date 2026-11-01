@@ -7,17 +7,21 @@ param(
   [ValidatePattern('^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$')]
   [string]$BackupBucket,
 
-  [string]$Profile = 'Aws-GitOps-Profile',
-  [string]$Region = 'us-east-1'
+  [string]$Profile = $env:AWS_PROFILE,
+  [string]$Region = '__AWS_REGION__'
 )
 
 $ErrorActionPreference = 'Stop'
-$accountId = & aws sts get-caller-identity --profile $Profile --region $Region --query Account --output text
-if ($LASTEXITCODE -ne 0 -or $accountId -ne '507720142035') {
-  throw 'The AWS profile must resolve to the approved project account.'
+$profileArguments = @()
+if (-not [string]::IsNullOrWhiteSpace($Profile)) {
+  $profileArguments = @('--profile', $Profile)
+}
+$accountId = & aws @profileArguments sts get-caller-identity --region $Region --query Account --output text
+if ($LASTEXITCODE -ne 0 -or $accountId -ne '__AWS_ACCOUNT_ID__') {
+  throw 'The AWS profile must resolve to the configured project account.'
 }
 
-$instanceDocument = & aws ec2 describe-instances --profile $Profile --region $Region `
+$instanceDocument = & aws @profileArguments ec2 describe-instances --region $Region `
   --instance-ids $InstanceId --output json
 if ($LASTEXITCODE -ne 0) {
   throw 'Could not verify the selected EC2 instance.'
@@ -28,14 +32,14 @@ $matchingInstances = @(
   foreach ($reservation in $instance.Reservations) {
     foreach ($candidate in $reservation.Instances) {
       $nameTag = $candidate.Tags | Where-Object { $_.Key -eq 'Name' } | Select-Object -First 1
-      if ($candidate.State.Name -eq 'running' -and $nameTag.Value -eq 'agtp-demo-k3s') {
+      if ($candidate.State.Name -eq 'running' -and $nameTag.Value -eq '__PROJECT_NAME__-k3s') {
         $candidate
       }
     }
   }
 )
 if ($matchingInstances.Count -ne 1) {
-  throw 'The selected instance must be the single running agtp-demo-k3s host.'
+  throw 'The selected instance must be the single running configured project host.'
 }
 
 $tar = Get-Command tar.exe -ErrorAction SilentlyContinue
@@ -78,7 +82,7 @@ try {
     (New-Object System.Text.UTF8Encoding($false))
   )
 
-  $dispatch = & aws ssm send-command --profile $Profile --region $Region `
+  $dispatch = & aws @profileArguments ssm send-command --region $Region `
     --cli-input-json "file://$requestPath" --output json
   if ($LASTEXITCODE -ne 0) {
     throw 'SSM could not dispatch the backup service installation.'
@@ -88,7 +92,7 @@ try {
   $deadline = (Get-Date).AddMinutes(4)
   do {
     Start-Sleep -Seconds 5
-    $invocation = & aws ssm get-command-invocation --profile $Profile --region $Region `
+    $invocation = & aws @profileArguments ssm get-command-invocation --region $Region `
       --command-id $commandId --instance-id $InstanceId --output json | ConvertFrom-Json
     if ($LASTEXITCODE -ne 0) {
       continue

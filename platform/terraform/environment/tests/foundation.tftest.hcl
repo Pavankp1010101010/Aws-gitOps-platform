@@ -2,14 +2,19 @@ mock_provider "aws" {}
 
 variables {
   account_id                        = "123456789012"
+  project_name                      = "synthetic-project"
+  region                            = "us-east-1"
+  availability_zone                 = "us-east-1a"
   instance_type                     = "t3.medium"
   ami_id                            = "ami-00000000000000000"
   backup_bucket_name                = "synthetic-project-backups-test"
   notification_email                = "synthetic@example.invalid"
-  monthly_budget_usd                = 10
   teardown_after_utc                = "2099-01-01T00:00:00Z"
   create_github_oidc_provider       = false
   existing_github_oidc_provider_arn = "arn:aws:iam::123456789012:oidc-provider/token.actions.githubusercontent.com"
+  github_repository                 = "synthetic-owner/synthetic-repository"
+  github_repository_owner_id        = "11111111"
+  github_repository_id              = "22222222"
 }
 
 run "restricted_foundation_plan" {
@@ -67,7 +72,7 @@ run "restricted_foundation_plan" {
     error_message = "A shared OIDC provider must not be recreated by default."
   }
   assert {
-    condition     = jsondecode(aws_iam_role.image_publisher.assume_role_policy).Statement[0].Condition.StringEquals["token.actions.githubusercontent.com:sub"] == "repo:Pavankp1010101010@93963930/Aws-gitOps-platform@1438499998:ref:refs/heads/main"
+    condition     = jsondecode(aws_iam_role.image_publisher.assume_role_policy).Statement[0].Condition.StringEquals["token.actions.githubusercontent.com:sub"] == "repo:synthetic-owner@11111111/synthetic-repository@22222222:ref:refs/heads/main"
     error_message = "Image publisher trust must be exact immutable repository/main, not pull requests."
   }
   assert {
@@ -133,10 +138,14 @@ run "reject_wrong_account_oidc" {
   expect_failures = [aws_iam_role.image_publisher]
 }
 
-run "reject_unapproved_region" {
+run "supports_another_commercial_region" {
   command = plan
   variables {
-    region = "ap-south-1"
+    region            = "ap-south-1"
+    availability_zone = "ap-south-1a"
   }
-  expect_failures = [var.region]
+  assert {
+    condition     = aws_subnet.public.availability_zone == "ap-south-1a"
+    error_message = "The selected availability zone must follow the configured AWS region."
+  }
 }
